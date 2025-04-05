@@ -5,6 +5,7 @@ env/
 *.pyc
 __pycache__/
 *.log
+.env
 
 # Fichiers système Mac
 .DS_Store

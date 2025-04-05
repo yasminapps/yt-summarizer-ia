@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>YT Summarizer IA</title>
+</head>
+<body>
+  <h1>🎬 YouTube Summarize</h1>
+
+  <form method="POST" action="/summarize">
+    <label for="youtube_url">YouTube Link:</label><br>
+    <input type="text" name="youtube_url" id="youtube_url" required><br><br>
+
+    <label>Choose your IA :</label><br>
+    <input type="radio" id="ollama" name="engine" value="ollama" checked>
+    <label for="ollama">🖥️ Ollama (local)</label><br>
+
+    <input type="radio" id="openai" name="engine" value="openai">
+    <label for="openai">🌐 OpenAI API</label><br><br>
+
+    <div id="openai-config" style="display: none; margin-top: 10px;">
+      <label for="api_url">API URL :</label><br>
+      <input type="text" id="api_url" name="api_url" placeholder="https://api.openai.com/v1/chat/completions" size="90"><br><br>
+      <label for="api_key">Clé API :</label><br>
+      <input type="password" id="api_key" name="api_key" placeholder="sk-..." size="90"><br><br>
+    </div>
+    <button type="submit">Go for summary</button>
+  </form>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

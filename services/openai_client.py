@@ -1,11 +1,17 @@
 import requests
 import json
+import os
+from dotenv import load_dotenv
 
-def call_openai_llm(prompt: str, api_url: str, api_key: str, model: str = "gpt-3.5-turbo") -> dict:
+load_dotenv()
+
+def call_openai_llm(prompt: str, api_url: str = None, api_key: str = None, model: str = "gpt-3.5-turbo") -> dict:
     """
     Appelle l'API OpenAI (ou compatible) pour obtenir un résumé.
     Ne stocke pas la clé, ne log rien de sensible.
     """
+    api_url = api_url or os.getenv("OPENAI_API_URL")
+    api_key = api_key or os.getenv("OPENAI_API_KEY")
 
     headers = {
         "Authorization": f"Bearer {api_key}",
