@@ -11,3 +11,5 @@ __pycache__/
 
 # Fichiers de test utilisateur
 uploads/
+test-rapide.py
+
