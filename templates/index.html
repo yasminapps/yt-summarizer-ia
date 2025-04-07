@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>YT Summarizer IA</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
   <h1>🎬 YouTube Summarize</h1>
@@ -24,8 +25,73 @@
       <label for="api_key">Clé API :</label><br>
       <input type="password" id="api_key" name="api_key" placeholder="sk-..." size="90"><br><br>
     </div>
+    <br>
+<fieldset>
+    <label for="language" title="You can choose any language, even if it's not listed.">
+        Choose your language :
+    </label><br>
+        <legend>Summary Settings</legend>
+
+    <input list="languages" name="language" id="language" required placeholder="e.g. en, fr, es">
+
+    <datalist id="languages">
+        <option value="en">English</option>
+        <option value="fr">French</option>
+        <option value="es">Spanish</option>
+        <option value="de">German</option>
+        <option value="it">Italian</option>
+        <option value="pt">Portuguese</option>
+        <option value="ar">Arabic</option>
+        <option value="zh">Chinese</option>
+        <option value="ja">Japanese</option>
+        <option value="ko">Korean</option>
+        <option value="ru">Russian</option>
+        <option value="hi">Hindi</option>
+        <option value="nl">Dutch</option>
+        <option value="sv">Swedish</option>
+        <option value="tr">Turkish</option>
+        <option value="pl">Polish</option>
+        <option value="he">Hebrew</option>
+        <option value="fa">Persian</option>
+        <option value="id">Indonesian</option>
+        <option value="vi">Vietnamese</option>
+        <option value="th">Thai</option>
+        <option value="uk">Ukrainian</option>
+        <option value="el">Greek</option>
+        <option value="no">Norwegian</option>
+        <option value="cs">Czech</option>
+        <option value="ro">Romanian</option>
+        <option value="da">Danish</option>
+        <option value="hu">Hungarian</option>
+        <option value="fi">Finnish</option>
+        <option value="so">Somali</option>
+    </datalist>
+    <br><br>
+    <label for="detail_level">Choose summary detail level :</label><br>
+    <select name="detail_level" id="detail_level" required>
+        <option value="short" title="One sentence per idea.">🪶 Short</option>
+        <option value="medium" selected title="Quick but informative summary.">✏️ Medium</option>
+        <option value="detailed" title="Complete and detailed version of the content.">📚 Detailed</option>
+    </select>
+    <br><br>
+
+    <label for="summary_type">Choose your summary type :</label><br>
+    <select name="summary_type" id="summary_type" required>
+      <option value="full" selected title="A complete summary of the entire video.">
+        📚 Full Summary
+      </option>
+      <option value="tools" title="List of tools, methods or techniques mentioned in the video.">
+        📄 Tools & Methods
+      </option>
+      <option value="insights" title="Only key insights or lessons. Not a full summary.">
+        💡 Key Learnings
+      </option>
+    </select>
+    <br><br>	 
+    </fieldset>
     <button type="submit">Go for summary</button>
   </form>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
 <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
