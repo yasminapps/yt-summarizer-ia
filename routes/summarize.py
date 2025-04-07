@@ -1,12 +1,14 @@
-Pourquoi ai-je reçu deux fois les mêmes logs en si peu de temps ?from flask import request, jsonify
+from flask import request, jsonify
 from services.youtube_transcript import get_transcript_text
 from services.ollama_client import call_ollama_llm
 from services.openai_client import call_openai_llm
 from services.ia_client_factory import get_llm_client
 from utils.logger import get_logger
+from utils.decorators import timed, safe_exec
 
 logger = get_logger()
 
+@timed
 def summarize():
     try:
         logger.info("🔁 New summarization request received")

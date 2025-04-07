@@ -1,6 +1,10 @@
 from services.ollama_client import call_ollama_llm
 from services.openai_client import call_openai_llm
+from utils.decorators import safe_exec, log_execution, timed
 
+@timed
+@log_execution
+@safe_exec
 def get_llm_client(engine, api_url="", api_key=""):
     """
     Retourne la fonction IA appropriée selon le choix utilisateur.

@@ -97,12 +97,14 @@
         <div id="loading-animation" style="display: none; align-items: center; gap: 10px;">
             <span id="loading-dots" style="font-size: 1.5em;">.</span>
         </div>
-        <div id="summary-result" style="white-space: pre-wrap;"></div>
         <div id="token-info" style="font-size: 0.9em; color: #555;"></div>
         <div id="error-message" style="color: red;"></div>
+        <div id="summary-actions" style="margin-top: 10px; display: none;">
+        <button onclick="downloadSummary()">📥 Download</button>
+        <button onclick="copySummary()">📋 Copy</button>
+        <span id="copy-feedback" style="margin-left: 10px; color: green;"></span>
+        </div>
     </div>
-
-<script src="{{ url_for('static', filename='script.js') }}"></script>
 <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

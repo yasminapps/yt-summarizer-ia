@@ -1,6 +1,10 @@
 import requests
 import json
+from utils.decorators import safe_exec, log_execution, timed
 
+@timed
+@log_execution
+@safe_exec
 def call_ollama_llm(prompt: str, model: str = "llama3", stream: bool = False) -> str:
     """
     Envoie une requête à Ollama pour générer un résumé.

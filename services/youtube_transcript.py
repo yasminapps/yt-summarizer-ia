@@ -1,8 +1,11 @@
 from youtube_transcript_api import YouTubeTranscriptApi
 from youtube_transcript_api.formatters import TextFormatter
 from urllib.parse import urlparse, parse_qs
+from utils.decorators import safe_exec, log_execution, timed
 
-
+@timed
+@log_execution
+@safe_exec
 def extract_video_id(youtube_url):
     try:
         parsed_url = urlparse(youtube_url)

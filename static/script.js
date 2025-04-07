@@ -77,7 +77,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (response.ok) {
                 summaryResult.textContent = data.summary;
-                if (data.tokens && Object.keys(data.tokens).length > 0) {
+                document.getElementById("summary-actions").style.display = "block";     
+           if (data.tokens && Object.keys(data.tokens).length > 0) {
                     tokenInfo.textContent = `  Tokens used: ${JSON.stringify(data.tokens)}`;
                 }
             } else {
@@ -89,3 +90,30 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 });
+
+function downloadSummary() {
+        const text = document.getElementById("summary-result").textContent;
+        const blob = new Blob([text], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "summary.txt";
+        link.click();
+
+        URL.revokeObjectURL(url);
+    }
+
+
+    function copySummary() {
+        const text = document.getElementById("summary-result").textContent;
+        navigator.clipboard.writeText(text).then(() => {
+            document.getElementById("copy-feedback").textContent = "Copied!";
+            setTimeout(() => {
+                document.getElementById("copy-feedback").textContent = "";
+            }, 2000);
+        }).catch(() => {
+            document.getElementById("copy-feedback").textContent = "  Copy failed.";
+        });
+    }
+

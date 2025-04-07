@@ -2,9 +2,13 @@ import requests
 import json
 import os
 from dotenv import load_dotenv
+from utils.decorators import safe_exec, log_execution, timed
 
 load_dotenv()
 
+@timed
+@log_execution
+@safe_exec
 def call_openai_llm(prompt: str, api_url: str = None, api_key: str = None, model: str = "gpt-3.5-turbo") -> dict:
     """
     Appelle l'API OpenAI (ou compatible) pour obtenir un résumé.
