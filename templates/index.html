@@ -91,6 +91,17 @@
     </fieldset>
     <button type="submit">Go for summary</button>
   </form>
+    <div id="summary-container">
+        <h2>Summary</h2>
+        <div id="summary-result" style="white-space: pre-wrap;"></div>
+        <div id="loading-animation" style="display: none; align-items: center; gap: 10px;">
+            <span id="loading-dots" style="font-size: 1.5em;">.</span>
+        </div>
+        <div id="summary-result" style="white-space: pre-wrap;"></div>
+        <div id="token-info" style="font-size: 0.9em; color: #555;"></div>
+        <div id="error-message" style="color: red;"></div>
+    </div>
+
 <script src="{{ url_for('static', filename='script.js') }}"></script>
 <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>

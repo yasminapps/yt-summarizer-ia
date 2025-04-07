@@ -26,3 +26,22 @@ textarea {
     box-sizing: border-box;
     margin-bottom: 15px;
 }
+
+#loading-animation {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+#loading-dots {
+    font-size: 1.5em;
+    font-weight: bold;
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    0%   { opacity: 1; }
+    50%  { opacity: 0.5; }
+    100% { opacity: 1; }
+}
