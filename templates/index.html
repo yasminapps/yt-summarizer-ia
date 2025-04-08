@@ -3,108 +3,75 @@
 <head>
   <meta charset="UTF-8">
   <title>YT Summarizer IA</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <h1>🎬 YouTube Summarize</h1>
+  <div class="container">
+    <h1>🎬 YouTube Summary Generator</h1>
+    <form method="POST" action="/summarize" class="summary-form">
+      <fieldset>
+        <legend>Enter Video Link</legend>
+        <input type="text" name="youtube_url" id="youtube_url" placeholder="https://youtube.com/..." required>
+      </fieldset>
 
-  <form method="POST" action="/summarize">
-    <label for="youtube_url">YouTube Link:</label><br>
-    <input type="text" name="youtube_url" id="youtube_url" required><br><br>
-
-    <label>Choose your IA :</label><br>
-    <input type="radio" id="ollama" name="engine" value="ollama" checked>
-    <label for="ollama">🖥️ Ollama (local)</label><br>
-
-    <input type="radio" id="openai" name="engine" value="openai">
-    <label for="openai">🌐 OpenAI API</label><br><br>
-
-    <div id="openai-config" style="display: none; margin-top: 10px;">
-      <label for="api_url">API URL :</label><br>
-      <input type="text" id="api_url" name="api_url" placeholder="https://api.openai.com/v1/chat/completions" size="90"><br><br>
-      <label for="api_key">Clé API :</label><br>
-      <input type="password" id="api_key" name="api_key" placeholder="sk-..." size="90"><br><br>
-    </div>
-    <br>
-<fieldset>
-    <label for="language" title="You can choose any language, even if it's not listed.">
-        Choose your language :
-    </label><br>
-        <legend>Summary Settings</legend>
-
-    <input list="languages" name="language" id="language" required placeholder="e.g. en, fr, es">
-
-    <datalist id="languages">
-        <option value="en">English</option>
-        <option value="fr">French</option>
-        <option value="es">Spanish</option>
-        <option value="de">German</option>
-        <option value="it">Italian</option>
-        <option value="pt">Portuguese</option>
-        <option value="ar">Arabic</option>
-        <option value="zh">Chinese</option>
-        <option value="ja">Japanese</option>
-        <option value="ko">Korean</option>
-        <option value="ru">Russian</option>
-        <option value="hi">Hindi</option>
-        <option value="nl">Dutch</option>
-        <option value="sv">Swedish</option>
-        <option value="tr">Turkish</option>
-        <option value="pl">Polish</option>
-        <option value="he">Hebrew</option>
-        <option value="fa">Persian</option>
-        <option value="id">Indonesian</option>
-        <option value="vi">Vietnamese</option>
-        <option value="th">Thai</option>
-        <option value="uk">Ukrainian</option>
-        <option value="el">Greek</option>
-        <option value="no">Norwegian</option>
-        <option value="cs">Czech</option>
-        <option value="ro">Romanian</option>
-        <option value="da">Danish</option>
-        <option value="hu">Hungarian</option>
-        <option value="fi">Finnish</option>
-        <option value="so">Somali</option>
-    </datalist>
-    <br><br>
-    <label for="detail_level">Choose summary detail level :</label><br>
-    <select name="detail_level" id="detail_level" required>
-        <option value="short" title="One sentence per idea.">🪶 Short</option>
-        <option value="medium" selected title="Quick but informative summary.">✏️ Medium</option>
-        <option value="detailed" title="Complete and detailed version of the content.">📚 Detailed</option>
-    </select>
-    <br><br>
-
-    <label for="summary_type">Choose your summary type :</label><br>
-    <select name="summary_type" id="summary_type" required>
-      <option value="full" selected title="A complete summary of the entire video.">
-        📚 Full Summary
-      </option>
-      <option value="tools" title="List of tools, methods or techniques mentioned in the video.">
-        📄 Tools & Methods
-      </option>
-      <option value="insights" title="Only key insights or lessons. Not a full summary.">
-        💡 Key Learnings
-      </option>
-    </select>
-    <br><br>	 
-    </fieldset>
-    <button type="submit">Go for summary</button>
-  </form>
-    <div id="summary-container">
-        <h2>Summary</h2>
-        <div id="summary-result" style="white-space: pre-wrap;"></div>
-        <div id="loading-animation" style="display: none; align-items: center; gap: 10px;">
-            <span id="loading-dots" style="font-size: 1.5em;">.</span>
+      <fieldset>
+        <legend>Choose AI Engine</legend>
+        <label><input type="radio" name="engine" id="ollama" value="ollama" checked> 🖥️ Ollama (local)</labe>
+        <label><input type="radio" name="engine" id="openai-user" value="openai-user"> 🌐 Your OpenAI API</label>
+        <div id="openai-config" style="display: none;">
+          <input type="text" id="api_url" name="api_url" placeholder="API URL">
+          <input type="password" id="api_key" name="api_key" placeholder="API Key">
         </div>
-        <div id="token-info" style="font-size: 0.9em; color: #555;"></div>
-        <div id="error-message" style="color: red;"></div>
-        <div id="summary-actions" style="margin-top: 10px; display: none;">
+        <label>
+        <input type="radio" name="engine" id="openai-default" value="openai-default">
+        🌐 OpenAI API – Default
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Summary Settings</legend>
+        <label for="language">Language</label>
+        <input list="languages" name="language" id="language" required placeholder="e.g. en, fr, es">
+        <datalist id="languages">
+          <option value="en"><option value="fr"><option value="es"><option value="de">
+          <option value="it"><option value="pt"><option value="ar"><option value="zh">
+        </datalist>
+
+        <label for="detail_level">Detail Level</label>
+        <select name="detail_level" id="detail_level">
+          <option value="short">Short</option>
+          <option value="medium" selected>Medium</option>
+          <option value="detailed">Detailed</option>
+        </select>
+
+        <label for="summary_type">Summary Type</label>
+        <select name="summary_type" id="summary_type">
+          <option value="full" selected>📚 Full Summary</option>
+          <option value="tools">📄 Tools & Methods</option>
+          <option value="insights">💡 Key Learnings</option>
+        </select>
+      </fieldset>
+
+      <button type="submit" class="btn-submit">▶️ Generate Summary</button>
+    </form>
+
+    <div id="summary-container" style="display: none;">
+      <h2>Summary</h2>
+      <div id="loading-animation" style="display: none; align-items: center; gap: 10px;">
+          <span style="font-weight: bold;">⏳ Generating summary <span id="loading-dots">.</span></span>
+      </div>
+      <div id="summary-result" style="white-space: pre-wrap;"></div>
+      <div id="token-info" class="token-info"></div>
+      <div id="error-message" class="error-message"></div>
+
+      <div id="summary-actions" style="margin-top: 10px; display: none;">
         <button onclick="downloadSummary()">📥 Download</button>
         <button onclick="copySummary()">📋 Copy</button>
-        <span id="copy-feedback" style="margin-left: 10px; color: green;"></span>
-        </div>
+        <span id="copy-feedback" class="copy-feedback"></span>
+      </div>
     </div>
-<script src="{{ url_for('static', filename='script.js') }}"></script>
+  </div>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

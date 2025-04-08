@@ -8,13 +8,19 @@ from utils.decorators import safe_exec, log_execution, timed
 def get_llm_client(engine, api_url="", api_key=""):
     """
     Retourne la fonction IA appropriée selon le choix utilisateur.
-    - Si openai est sélectionné et clé + URL présentes → OpenAI
+    - Si openai-user est sélectionné et clé + URL présentes → OpenAI (clé utilisateur)
+    - Si openai-default est sélectionné → OpenAI avec clé du projet
     - Sinon, fallback Ollama
     """
-    if engine == "openai" and api_url and api_key:
+    if engine == "openai-user" and api_url and api_key:
         def openai_wrapper(prompt):
             return call_openai_llm(prompt, api_url, api_key)
         return openai_wrapper
+
+    if engine == "openai-default":
+        def openai_default_wrapper(prompt):
+            return call_openai_llm(prompt)  # utilisera les valeurs du .env
+        return openai_default_wrapper
 
     def ollama_wrapper(prompt):
         return {

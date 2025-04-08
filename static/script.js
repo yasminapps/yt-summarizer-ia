@@ -8,22 +8,25 @@ window.onload = function() {
     }
 
     // 🧠 Affichage dynamique de la config OpenAI
-    const openaiRadio = document.getElementById('openai');
-    const ollamaRadio = document.getElementById('ollama');
+    const engineRadios = document.querySelectorAll('input[name="engine"]');
     const configDiv = document.getElementById('openai-config');
 
     function toggleConfig() {
-        if (openaiRadio && openaiRadio.checked) {
+        const selected = document.querySelector('input[name="engine"]:checked');
+        if (selected && selected.value === 'openai-user') {
             configDiv.style.display = 'block';
         } else {
             configDiv.style.display = 'none';
+            document.getElementById("api_url").value = "";
+            document.getElementById("api_key").value = "";
         }
     }
 
-    if (openaiRadio && ollamaRadio && configDiv) {
-        openaiRadio.addEventListener('change', toggleConfig);
-        ollamaRadio.addEventListener('change', toggleConfig);
-        toggleConfig(); // exécute au démarrage
+    if (engineRadios.length && configDiv) {
+        engineRadios.forEach(radio => {
+            radio.addEventListener('change', toggleConfig);
+        });
+        toggleConfig(); // Appel initial
     }
 };
 
@@ -38,15 +41,13 @@ document.addEventListener("DOMContentLoaded", function () {
     let dotInterval = null;
 
     function startLoadingAnimation() {
-        summaryResult.textContent = "⏳ Generating summary";
         loadingAnimation.style.display = "flex";
         let dots = "";
         dotInterval = setInterval(() => {
-            dots = dots.length < 3 ? dots + "." : "";
+            dots = dots.length < 3 ? dots + "." : ".";
             loadingDots.textContent = dots;
         }, 500);
     }
-
     function stopLoadingAnimation() {
         clearInterval(dotInterval);
         loadingAnimation.style.display = "none";
@@ -60,9 +61,9 @@ document.addEventListener("DOMContentLoaded", function () {
         summaryResult.textContent = "";
         errorMessage.textContent = "";
         tokenInfo.textContent = "";
-
         const formData = new FormData(form);
 
+        document.getElementById("summary-container").style.display = "block";
         startLoadingAnimation();
 
         try {
