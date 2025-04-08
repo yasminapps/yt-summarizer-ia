@@ -1,21 +1,5 @@
-# Re-génération après réinitialisation de l'état
-import pkg_resources
-
-# Dépendances principales basées sur les fichiers mentionnés dans le projet
-packages_used = [
-    "flask",
-    "requests",
-    "python-dotenv",
-    "youtube-transcript-api",
-    "pytest"
-]
-
-# Récupérer les versions installées localement
-installed = {pkg.key: pkg.version for pkg in pkg_resources.working_set}
-requirements = [f"{pkg}=={installed[pkg]}" for pkg in packages_used if pkg in installed]
-
-# Sauvegarder dans requirements.txt
-with open("/mnt/data/requirements.txt", "w") as f:
-    f.write("\n".join(requirements))
-
-"/mnt/data/requirements.txt"
+flask==3.1.0
+requests==2.32.3
+python-dotenv==1.1.0
+youtube-transcript-api==1.0.3
+pytest==8.3.5
