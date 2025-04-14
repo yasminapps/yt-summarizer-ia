@@ -13,7 +13,7 @@ Summarizes a YouTube video transcript using an AI engine (OpenAI or Ollama).
 | Field         | Type     | Description                                                   |
 |---------------|----------|---------------------------------------------------------------|
 | `youtube_url` | string   | Full YouTube video link (supports `youtube.com` and `youtu.be`) |
-| `ia_source`   | string   | `"openai"` or `"ollama"`                                      |
+| `engine`      | string   | `"openai"` or `"ollama"`                                      |
 | `api_key`     | string   | API key (required for OpenAI only)                            |
 | `api_url`     | string   | API endpoint (required for OpenAI only)                       |
 | `summary_type`| string   | `"full"`, `"tools"`, or `"key_learnings"`                    |

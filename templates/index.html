@@ -16,7 +16,7 @@
 
       <fieldset>
         <legend>Choose AI Engine</legend>
-        <label><input type="radio" name="engine" id="ollama" value="ollama" checked> 🖥️ Ollama (local)</labe>
+        <label><input type="radio" name="engine" id="ollama" value="ollama" checked> 🖥️ Ollama (local)</label>
         <label><input type="radio" name="engine" id="openai-user" value="openai-user"> 🌐 Your OpenAI API</label>
         <div id="openai-config" style="display: none;">
           <input type="text" id="api_url" name="api_url" placeholder="API URL">
@@ -26,6 +26,8 @@
         <input type="radio" name="engine" id="openai-default" value="openai-default">
         🌐 OpenAI API – Default
         </label>
+        <!-- Champ caché pour maintenir la compatibilité avec le backend -->
+        <input type="hidden" name="ia_source" id="ia_source_hidden">
       </fieldset>
 
       <fieldset>

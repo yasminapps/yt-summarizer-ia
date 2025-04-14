@@ -54,6 +54,12 @@ document.addEventListener("DOMContentLoaded", function () {
         loadingDots.textContent = "";
     }
 
+    function formatSecondsToMinutes(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        return `${minutes}m ${remainingSeconds.toFixed(0)}s`;
+    }
+
     form.addEventListener("submit", async function (e) {
         e.preventDefault(); // block default form submission
 
@@ -73,14 +79,20 @@ document.addEventListener("DOMContentLoaded", function () {
             });
 
             const data = await response.json();
-
+            const executionTime = data.execution_time || 0;  // en secondes
+           
             stopLoadingAnimation();
 
             if (response.ok) {
                 summaryResult.textContent = data.summary;
                 document.getElementById("summary-actions").style.display = "block";     
-           if (data.tokens && Object.keys(data.tokens).length > 0) {
-                    tokenInfo.textContent = `  Tokens used: ${JSON.stringify(data.tokens)}`;
+                if (data.tokens && Object.keys(data.tokens).length > 0) {
+                    const totalTokens = data.tokens.total_tokens || "N/A";
+                    tokenInfo.textContent = `Tokens used : ${totalTokens}`;
+                }
+                if (executionTime) {
+                    const formattedTime = formatSecondsToMinutes(executionTime);
+                    tokenInfo.textContent += ` | Execution time: ${formattedTime}`;
                 }
             } else {
                 errorMessage.textContent = data.summary || "️⚠️ An error occurred.";

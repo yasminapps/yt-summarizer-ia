@@ -21,10 +21,8 @@ def get_llm_client(engine, api_url="", api_key=""):
         def openai_default_wrapper(prompt):
             return call_openai_llm(prompt)  # utilisera les valeurs du .env
         return openai_default_wrapper
-
+    
+    # Par défaut, on utilise Ollama
     def ollama_wrapper(prompt):
-        return {
-            "response": call_ollama_llm(prompt),
-            "tokens_used": {}
-        }
+        return call_ollama_llm(prompt)  # result est déjà un dict propre
     return ollama_wrapper

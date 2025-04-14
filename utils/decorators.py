@@ -13,6 +13,11 @@ def timed(func):
         result = func(*args, **kwargs)
         duration = time.time() - start
         logger.debug(f"⏱️ Function `{func.__name__}` executed in {duration:.2f}s")
+
+        # Injecte execution_time si résultat est dict
+        if isinstance(result, dict):
+            result["execution_time"] = round(duration, 2)
+
         return result
     return wrapper
 

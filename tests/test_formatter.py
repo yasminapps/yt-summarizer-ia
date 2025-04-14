@@ -18,3 +18,15 @@ def test_clean_transcript_is_truncated():
     long_text = "test " * 1000  # will exceed 3000 chars
     cleaned = clean_transcript(long_text, max_length=3000)
     assert len(cleaned) <= 3000
+
+def test_clean_transcript_handles_empty_string():
+    cleaned = clean_transcript("")
+    assert cleaned == ""
+
+def test_clean_transcript_handles_none():
+    cleaned = clean_transcript(None)
+    assert cleaned is None
+
+def test_clean_transcript_handles_non_string_input():
+    cleaned = clean_transcript(123)
+    assert cleaned == "123"

@@ -29,9 +29,16 @@ def call_ollama_llm(prompt: str, model: str = "llama3", stream: bool = False) ->
                 if line:
                     decoded_line = json.loads(line.decode("utf-8"))
                     full_response += decoded_line.get("response", "")
-            return full_response
+            result = full_response
         else:
-            return response.json().get("response", "")
+            result = response.json().get("response", "")
+        return {
+            "response": result,
+            "tokens_used": {}  # Ollama ne fournit pas les tokens
+        }
         
     except Exception as e:
-        return f"Erreur lors de l’appel à Ollama : {str(e)}"
+         return {
+            "response": f"Erreur lors de l’appel à Ollama : {str(e)}",
+            "tokens_used": {}
+        }

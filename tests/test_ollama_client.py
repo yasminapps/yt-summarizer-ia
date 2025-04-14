@@ -12,7 +12,7 @@ def test_ollama_success(mock_post):
     mock_post.return_value = mock_response
 
     result = call_ollama_llm("Voici le texte à résumer.")
-    assert "Résumé généré" in result
+    assert "Résumé généré" in result["response"]
 
 
 @patch("services.ollama_client.requests.post")
@@ -28,7 +28,7 @@ def test_ollama_streaming(mock_post):
     mock_post.return_value = mock_response
 
     result = call_ollama_llm("Texte pour stream", stream=True)
-    assert result == "Bonjour tout le monde"
+    assert result["response"] == "Bonjour tout le monde"
 
 
 @patch("services.ollama_client.requests.post")
@@ -37,4 +37,4 @@ def test_ollama_error(mock_post):
     mock_post.side_effect = Exception("Connection refused")
 
     result = call_ollama_llm("Texte", model="llama3")
-    assert "Erreur lors de l’appel à Ollama" in result
+    assert "Connection refused" in result["response"]

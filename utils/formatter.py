@@ -7,6 +7,11 @@ def clean_transcript(raw_text: str, max_length: int = 3000) -> str:
     - retire les balises, caractères spéciaux, etc.
     - limite la taille du texte pour éviter de surcharger l'IA
     """
+    if raw_text is None:
+        return None
+
+    if not isinstance(raw_text, str):
+        raw_text = str(raw_text)
 
     # Supprimer les multiples sauts de ligne / espaces
     cleaned = re.sub(r'\s+', ' ', raw_text)

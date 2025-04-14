@@ -5,7 +5,7 @@ def mock_openai(prompt, api_url=None, api_key=None):
     return {"response": f"openai: {prompt}", "tokens_used": {"prompt_tokens": 5}}
 
 def mock_ollama(prompt):
-    return f"ollama: {prompt}"
+    return {"response": f"ollama: {prompt}", "tokens_used": {}, "execution_time": 0.0}
 
 # Patch les fonctions pour les tests
 def test_get_llm_client_openai_user(monkeypatch):
