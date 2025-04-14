@@ -168,3 +168,9 @@ input[type="radio"] {
     color: #555;
     line-height: 1.6;
 }
+
+#summary-result {
+    font-family: "Century Schoolbook", "Georgia", serif;
+    font-size: 1.1em;
+    line-height: 1.6;
+}

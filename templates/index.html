@@ -54,6 +54,61 @@
         </select>
       </fieldset>
 
+      <fieldset>
+        <legend>🎨 Customize your summary</legend>
+
+        <details>
+          <summary style="cursor: pointer; font-weight: bold; margin-bottom: 10px;">
+            Advanced options (click to customize)
+          </summary>
+
+          <div style="margin-top: 15px;">
+
+            <label for="style_choice">Summary style:</label>
+            <select id="style_choice" name="style_choice">
+              <option value="mixed" selected>Mixed text & bullet points</option>
+              <option value="bullet_points">Bullet points only - no text</option>
+              <option value="text_only">Text only - no bullet points</option>
+            </select>
+
+            <br>
+            <div style="margin-bottom: 10px;">
+              <span>Emojis:</span>
+              <div style="display: flex; gap: 20px; margin-top: 5px;">
+                <label>
+                  <input type="radio" name="add_emojis" value="yes" checked>
+                  Add emojis
+                </label>
+                <label>
+                  <input type="radio" name="add_emojis" value="no">
+                  Do not add emojis
+                </label>
+              </div>
+            </div>
+            
+            <div style="margin-bottom: 10px;">
+              <span>Tables:</span>
+              <div style="display: flex; gap: 20px; margin-top: 5px;">
+                <label>
+                  <input type="radio" name="add_tables" value="yes" checked>
+                  Add tables
+                </label>
+                <label>
+                  <input type="radio" name="add_tables" value="no">
+                  Do not add tables
+                </label>
+              </div>
+            </div>
+            <br>
+
+            <label for="custom_instructions">Specific instructions (optional):</label><br>
+            <textarea id="custom_instructions" name="custom_instructions" rows="4" placeholder="Ex: Focus only on tools mentioned..."></textarea>
+
+          </div>
+        </details>
+
+      </fieldset>
+
       <button type="submit" class="btn-submit">▶️ Generate Summary</button>
     </form>
 

@@ -84,7 +84,7 @@ document.addEventListener("DOMContentLoaded", function () {
             stopLoadingAnimation();
 
             if (response.ok) {
-                summaryResult.textContent = data.summary;
+                summaryResult.innerHTML = data.summary;
                 document.getElementById("summary-actions").style.display = "block";     
                 if (data.tokens && Object.keys(data.tokens).length > 0) {
                     const totalTokens = data.tokens.total_tokens || "N/A";
