@@ -73,6 +73,47 @@
       </div>
     </div>
   </div>
+  <br><br><br><br>
+  <section class="faq">
+    <h2>FAQ — Questions fréquentes</h2>
+
+    <div class="faq-item">
+        <h3>⏳ Pourquoi le résumé peut-il prendre du temps ?</h3>
+        <p>
+        Le temps de génération dépend surtout :<br>
+        - de la longueur de la vidéo<br>
+        - du moteur IA que tu choisis<br>
+        Les moteurs en local (Ollama) sont souvent plus lents car ton ordinateur fait tout le calcul. Les moteurs OpenAI (API) sont généralement plus rapides.
+        </p>
+    </div>
+
+    <div class="faq-item">
+        <h3>🤖 Quelle est la différence entre Ollama, ton OpenAI API et l'OpenAI du site ?</h3>
+        <p>
+        - <strong>Ollama (local)</strong> → IA installée sur ton ordinateur. Gratuit, mais lent et dépendant de ta machine.<br>
+        - <strong>Ton OpenAI API</strong> → Tu payes OpenAI directement et utilises ta clé perso.<br>
+        - <strong>OpenAI du site</strong> → C’est notre clé OpenAI. Gratuite (pour l’instant).
+        </p>
+    </div>
+
+    <div class="faq-item">
+        <h3>🔍 Que veulent dire les niveaux de détail ?</h3>
+        <p>
+        - <strong>Short</strong> → Résumé ultra-rapide, très synthétique<br>
+        - <strong>Medium</strong> → Résumé équilibré<br>
+        - <strong>Detailed</strong> → Résumé complet et précis
+        </p>
+    </div>
+
+    <div class="faq-item">
+        <h3>📚 Quels types de résumé puis-je demander ?</h3>
+        <p>
+        - <strong>Résumé complet</strong> → L'ensemble des idées principales<br>
+        - <strong>Outils & Méthodes</strong> → Liste des outils ou techniques évoqués<br>
+        - <strong>Key Learnings</strong> → Les grandes idées, les conseils clés
+        </p>
+    </div>
+</section>
 
   <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
