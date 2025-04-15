@@ -63,6 +63,7 @@ def summarize():
         logger.info("✅ Summary successfully generated")
 
         # 5. Renvoyer le résultat
+        print("⤵️ RAW Summary before markdown:\n", response_data.get("response", "Error"))
         html_summary = markdown.markdown(response_data.get("response", "Error"))
         return jsonify({
             "summary": html_summary,

@@ -64,7 +64,7 @@ document.addEventListener("DOMContentLoaded", function () {
         e.preventDefault(); // block default form submission
 
         // Reset display
-        summaryResult.textContent = "";
+        summaryResult.innerHTML = "";
         errorMessage.textContent = "";
         tokenInfo.textContent = "";
         const formData = new FormData(form);
@@ -85,6 +85,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (response.ok) {
                 summaryResult.innerHTML = data.summary;
+                summaryResult.style.whiteSpace = "normal";
                 document.getElementById("summary-actions").style.display = "block";     
                 if (data.tokens && Object.keys(data.tokens).length > 0) {
                     const totalTokens = data.tokens.total_tokens || "N/A";
