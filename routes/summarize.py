@@ -7,6 +7,11 @@ from utils.logger import get_logger
 from utils.decorators import timed, safe_exec
 from services.prompt_builder import build_final_prompt
 import markdown
+from utils.count_tokens import count_tokens
+from services.text_splitter import split_transcript_by_tokens
+from services.text_splitter import split_transcript_by_tokens
+from services.prompt_builder import build_initial_prompt, build_update_prompt
+
 
 
 logger = get_logger()
@@ -42,10 +47,12 @@ def summarize():
         transcript_text = get_transcript_text(youtube_url)
         logger.debug("✅ Transcript successfully retrieved")
 
-        # 3. Génération du prompt
-        logger.info("🧠 Generating prompt and calling LLM")
-        # juste avant de faire client(prompt)
-        prompt = build_final_prompt(transcript_text, {
+        # 3. Sélection du client IA
+        logger.info(f"🧠 Calling {engine} with API URL: {api_url}")
+        client = get_llm_client(engine, api_url=api_url, api_key=api_key)
+
+        # 5. Appels successifs à l'IA
+        user_choices = {
             "language": language,
             "detail_level": detail_level,
             "summary_type": summary_type,
@@ -53,18 +60,27 @@ def summarize():
             "add_emojis": request.form.get("add_emojis", "yes"),
             "add_tables": request.form.get("add_tables", "yes"),
             "specific_instructions": request.form.get("specific_instructions", "").strip()
-        })
+        }
+        
+        chunks = split_transcript_by_tokens(transcript_text, max_tokens=20000, model="gpt-4o")
+        logger.debug(f"✂️ Transcript split into {len(chunks)} parts")
 
-        # 4. Sélection du client IA
-        logger.info(f"🧠 Calling {engine} with API URL: {api_url}")
-        client = get_llm_client(engine, api_url=api_url, api_key=api_key)
-        response_data = client(prompt)
-        execution_time = response_data.get("execution_time", None)
-        logger.info("✅ Summary successfully generated")
+        current_summary = None
+        for idx, chunk in enumerate(chunks):
+            logger.info(f"🧩 Processing chunk {idx + 1}/{len(chunks)}")
 
+            if idx == 0:
+                prompt = build_initial_prompt(chunk, user_choices)
+            else:
+                prompt = build_update_prompt(chunk, current_summary, idx + 1, user_choices)
+                
+            response_data = client(prompt)
+            current_summary = response_data.get("response", "Error")
+        
+       
         # 5. Renvoyer le résultat
-        print("⤵️ RAW Summary before markdown:\n", response_data.get("response", "Error"))
-        html_summary = markdown.markdown(response_data.get("response", "Error"))
+        print("⤵️ RAW Final Summary before markdown:\n", current_summary)
+        html_summary = markdown.markdown(current_summary)
         return jsonify({
             "summary": html_summary,
             "tokens": response_data.get("tokens_used", {}),
