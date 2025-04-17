@@ -78,5 +78,6 @@ En cas de contradiction → les instructions spécifiques PRIMENT.
 ---
 
 # 🚨 Rappel final  
+→ N'hallucine jamais, et ne donne jamais de lien vers des ressources qui n'existent pas
 → NE PAS SORTIR DU FORMAT MARKDOWN.  
 → Si ce n’est pas du Markdown parfait → Corriger immédiatement.

@@ -62,7 +62,7 @@ def summarize():
             "specific_instructions": request.form.get("specific_instructions", "").strip()
         }
         
-        chunks = split_transcript_by_tokens(transcript_text, max_tokens=20000, model="gpt-4o")
+        chunks = split_transcript_by_tokens(transcript_text, max_tokens=10000, model="gpt-4o")
         logger.debug(f"✂️ Transcript split into {len(chunks)} parts")
 
         current_summary = None
@@ -91,6 +91,7 @@ def summarize():
         logger.exception("❌ Error during summarization process")
         return jsonify({
             "summary": f"Erreur côté serveur : {str(e)}",
+            "transcript": transcript_text,
             "tokens": {},
             "execution_time": 0
         }), 500

@@ -106,28 +106,52 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 function downloadSummary() {
-        const text = document.getElementById("summary-result").textContent;
-        const blob = new Blob([text], { type: "text/plain" });
-        const url = URL.createObjectURL(blob);
+    const text = document.getElementById("summary-result").innerText;
+    const blob = new Blob([text], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
 
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = "summary.txt";
-        link.click();
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "summary.txt";
+    link.click();
 
-        URL.revokeObjectURL(url);
-    }
+    URL.revokeObjectURL(url);
+}
 
+function copySummary() {
+    const text = document.getElementById("summary-result").innerText;
+    navigator.clipboard.writeText(text).then(() => {
+        showCopyFeedback("✅ Summary copied!");
+    }).catch(() => {
+        showCopyFeedback("❌ Copy failed.");
+    });
+}
 
-    function copySummary() {
-        const text = document.getElementById("summary-result").textContent;
-        navigator.clipboard.writeText(text).then(() => {
-            document.getElementById("copy-feedback").textContent = "Copied!";
-            setTimeout(() => {
-                document.getElementById("copy-feedback").textContent = "";
-            }, 2000);
-        }).catch(() => {
-            document.getElementById("copy-feedback").textContent = "  Copy failed.";
-        });
-    }
+function downloadTranscript() {
+    const text = window.lastTranscript || "Transcript unavailable.";
+    const blob = new Blob([text], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "transcript.txt";
+    link.click();
+
+    URL.revokeObjectURL(url);
+}
+
+function copyTranscript() {
+    const text = window.lastTranscript || "Transcript unavailable.";
+    navigator.clipboard.writeText(text).then(() => {
+        showCopyFeedback("✅ Transcript copied!");
+    }).catch(() => {
+        showCopyFeedback("❌ Copy failed.");
+    });
+}
+
+function showCopyFeedback(message) {
+    const feedback = document.getElementById("copy-feedback");
+    feedback.textContent = message;
+    setTimeout(() => feedback.textContent = "", 2000);
+}
 

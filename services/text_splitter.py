@@ -4,31 +4,34 @@ import tiktoken
 
 
 def split_transcript_by_tokens(text, max_tokens=10000, model="gpt-3.5-turbo"):
-    """
-    Coupe un texte en morceaux de max_tokens, en respectant les phrases si possible.
-
-    Args:
-        text (str): Le texte complet à découper
-        max_tokens (int): Limite max de tokens par chunk
-        model (str): Modèle utilisé pour le token count (ex: gpt-4o)
-
-    Returns:
-        List[str]: Liste des morceaux découpés
-    """
     encoding = tiktoken.encoding_for_model(model)
-    sentences = text.split('. ')  # Découpe basique par phrase (peut être améliorée)
+    sentences = text.split('.')  # très simple, à améliorer si besoin
     chunks = []
     current_chunk = ""
 
     for sentence in sentences:
-        test_chunk = current_chunk + sentence + ". "
-        tokens = len(encoding.encode(test_chunk))
+        sentence = sentence.strip()
+        if not sentence:
+            continue
 
-        if tokens <= max_tokens:
-            current_chunk = test_chunk
+        sentence_with_dot = sentence + "."
+        sentence_tokens = len(encoding.encode(sentence_with_dot))
+        current_tokens = len(encoding.encode(current_chunk))
+
+        # 🚨 Cas limite : phrase seule trop longue
+        if sentence_tokens > max_tokens:
+            if current_chunk:
+                chunks.append(current_chunk.strip())
+                current_chunk = ""
+            chunks.append(sentence_with_dot.strip())  # phrase seule = chunk
+            continue
+
+        # ✅ Sinon, on ajoute si ça passe
+        if current_tokens + sentence_tokens <= max_tokens:
+            current_chunk += sentence_with_dot
         else:
             chunks.append(current_chunk.strip())
-            current_chunk = sentence + ". "
+            current_chunk = sentence_with_dot
 
     if current_chunk:
         chunks.append(current_chunk.strip())

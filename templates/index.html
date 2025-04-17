@@ -114,6 +114,19 @@
 
     <div id="summary-container" style="display: none;">
       <h2>Summary</h2>
+      <div id="summary-actions" style="margin-top: 20px; display: none; text-align: center;">
+        <div style="margin-bottom: 10px;">
+          <strong>📄 Summary Actions</strong><br>
+          <button onclick="downloadSummary()">📥 Download Summary</button>
+          <button onclick="copySummary()">📋 Copy Summary</button>
+        </div>
+        <div style="margin-top: 15px;">
+          <strong>📝 Transcript Actions</strong><br>
+          <button onclick="downloadTranscript()">📥 Download Transcript</button>
+          <button onclick="copyTranscript()">📋 Copy Transcript</button>
+        </div>
+        <span id="copy-feedback" class="copy-feedback" style="display: block; margin-top: 10px;"></span>
+      </div>
       <div id="loading-animation" style="display: none; align-items: center; gap: 10px;">
           <span style="font-weight: bold;">⏳ Generating summary <span id="loading-dots">.</span></span>
       </div>
@@ -121,11 +134,6 @@
       <div id="token-info" class="token-info"></div>
       <div id="error-message" class="error-message"></div>
 
-      <div id="summary-actions" style="margin-top: 10px; display: none; text-align: center;">
-        <button onclick="downloadSummary()">📥 Download</button>
-        <button onclick="copySummary()">📋 Copy</button>
-        <span id="copy-feedback" class="copy-feedback"></span>
-      </div>
     </div>
   </div>
   <br><br><br><br>

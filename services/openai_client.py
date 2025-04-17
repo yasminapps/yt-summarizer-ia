@@ -3,8 +3,11 @@ import json
 import os
 from dotenv import load_dotenv
 from utils.decorators import safe_exec, log_execution, timed
+from utils.logger import get_logger
 
 load_dotenv()
+
+logger = get_logger()
 
 @timed
 @log_execution
@@ -32,6 +35,8 @@ def call_openai_llm(prompt: str, api_url: str = None, api_key: str = None, model
     }
 
     try:
+        logger.debug(f"🛠️ Payload size: {len(str(data))} chars")
+        logger.debug(f"🛠️ Prompt preview: {data['messages'][-1]['content'][:50]}")
         response = requests.post(api_url, headers=headers, json=data)
         response.raise_for_status()
         json_response = response.json()
