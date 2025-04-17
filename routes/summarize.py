@@ -44,6 +44,7 @@ def summarize():
         logger.debug(f"URL: {youtube_url} | Engine: {engine} | Type: {summary_type} | Lang: {language} | Detail: {detail_level}")
 
         # 2. Extraction du texte depuis YouTube
+        transcript_text = ""
         transcript_text = get_transcript_text(youtube_url)
         logger.debug("✅ Transcript successfully retrieved")
 
