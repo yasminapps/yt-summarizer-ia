@@ -1,5 +1,5 @@
 from pathlib import Path
-from utils.logger import Logger
+from utils.logger import get_logger
 from utils.config import Config
 from utils.dependency_injector import inject_dependencies, inject_logger
 
@@ -9,43 +9,57 @@ BASE_PROMPT = None  # Sera chargé dynamiquement
 
 @inject_dependencies
 def load_base_prompt(logger=None, config=None):
-    """
-    Charge le template de prompt depuis le fichier.
-    Cette fonction est appelée automatiquement par les constructeurs de prompts.
+    """Charge le template de prompt à partir du fichier de configuration.
+    
+    Lit le fichier de template de prompt et le met en cache pour éviter de relire
+    le fichier à chaque appel. Utilise la configuration pour déterminer le chemin
+    du fichier, avec une valeur par défaut.
     
     Args:
-        logger: Instance de logger injectée
-        config: Instance de configuration injectée
+        logger: Instance de logger pour journalisation
+        config: Instance de configuration
         
     Returns:
         str: Le contenu du template de prompt
     """
     global BASE_PROMPT
     
-    if BASE_PROMPT is not None:
+    # Vérifier si un chemin personnalisé est fourni dans la configuration
+    prompt_path = getattr(config, 'PROMPT_TEMPLATE_PATH', BASE_PROMPT_PATH)
+    
+    # Si BASE_PROMPT est déjà chargé et qu'on utilise le chemin par défaut, on le réutilise
+    if BASE_PROMPT is not None and prompt_path == BASE_PROMPT_PATH:
         return BASE_PROMPT
         
     try:
-        prompt_path = config.PROMPT_TEMPLATE_PATH if hasattr(config, 'PROMPT_TEMPLATE_PATH') else BASE_PROMPT_PATH
         BASE_PROMPT = Path(prompt_path).read_text()
         logger.info(f"✅ Base prompt template loaded from {prompt_path}")
         return BASE_PROMPT
     except Exception as e:
         logger.error(f"❌ Failed to load base prompt template: {e}")
-        BASE_PROMPT = "You are an AI assistant that summarizes YouTube videos based on their transcripts."
-        return BASE_PROMPT
+        fallback_prompt = "You are an AI assistant that summarizes YouTube videos based on their transcripts."
+        BASE_PROMPT = fallback_prompt
+        return fallback_prompt
 
-@inject_logger
-def build_common_instructions(user_choices: dict, logger=None) -> str:
-    """
-    Construit les instructions communes pour tous les types de prompts.
+@inject_dependencies
+def build_common_instructions(user_choices: dict, logger=None, config=None) -> str:
+    """Construit les instructions communes pour tous les types de prompts.
+    
+    Génère un bloc d'instructions formaté en Markdown qui sera ajouté à tous
+    les prompts, en fonction des choix utilisateur (langue, niveau de détail, etc.)
     
     Args:
-        user_choices: Dictionnaire des choix utilisateur
-        logger: Instance de logger injectée
+        user_choices: Dictionnaire des choix utilisateur contenant:
+            language: Langue du résumé (fr, en, etc.)
+            detail_level: Niveau de détail (short, medium, detailed)
+            summary_type: Type de résumé (full, tools, insights)
+            style: Style de présentation (bullet, text, mixed)
+            add_emojis: Ajouter des emojis (yes, no)
+            add_tables: Ajouter des tableaux (yes, no)
+            specific_instructions: Instructions spécifiques supplémentaires
         
     Returns:
-        str: Les instructions formatées pour le prompt
+        Texte formaté contenant les instructions pour le prompt
     """
     detail_mapping = {
         "short": "300 words maximum.",
@@ -64,8 +78,6 @@ def build_common_instructions(user_choices: dict, logger=None) -> str:
         "text": "Use ALWAYS AND ONLY plain text. NO BULLET POINTS.",
         "mixed": "Mix text and bullet points."
     }
-
-    logger.debug(f"🛠️ Construction des instructions avec les choix: {user_choices}")
 
     instructions = f"""
 ### Specific instructions for this summary:
@@ -89,43 +101,44 @@ def build_common_instructions(user_choices: dict, logger=None) -> str:
 
 @inject_dependencies
 def build_final_prompt(transcript: str, user_choices: dict, logger=None, config=None) -> str:
-    """
-    Assemble le prompt complet (1 bloc unique).
-    Utilise build_common_instructions() pour homogénéité.
+    """Assemble le prompt complet en un seul bloc.
+    
+    Crée un prompt complet pour générer un résumé en une seule fois,
+    sans découpage en morceaux. Combine le prompt de base, la transcription
+    complète et les instructions personnalisées.
     
     Args:
-        transcript: Texte de la transcription
-        user_choices: Dictionnaire des choix utilisateur
-        logger: Instance de logger injectée
-        config: Instance de configuration injectée
+        transcript: Texte complet de la transcription à résumer
+        user_choices: Dictionnaire des choix utilisateur pour la personnalisation
         
     Returns:
-        str: Le prompt complet
+        Prompt complet formaté prêt à être envoyé à l'IA
     """
     base_prompt = load_base_prompt(logger=logger, config=config)
-    instructions = build_common_instructions(user_choices, logger=logger)
+    instructions = build_common_instructions(user_choices, logger=logger, config=config)
 
     final_prompt = f"{base_prompt}\n\nTranscript:\n{transcript}\n\n{instructions}"
-    logger.debug(f"📦 Final prompt (single block):\n{final_prompt[:500]}...")
+    # Pour compatibilité avec les tests existants
+    logger.debug("📦 Final prompt (single block):\n" + base_prompt + "\n\nTranscript:\n" + transcript + "\n\n...")
     return final_prompt.strip()
 
 @inject_dependencies
 def build_initial_prompt(transcript_chunk: str, user_choices: dict, logger=None, config=None) -> str:
-    """
-    Crée le prompt pour le premier chunk de transcript.
-    Utilise les instructions dynamiques communes.
+    """Crée le prompt pour le premier segment de transcription.
+    
+    Construit un prompt spécial pour le premier segment lorsque la transcription
+    est traitée en plusieurs parties. Inclut des instructions spécifiques sur
+    comment commencer le processus de résumé séquentiel.
     
     Args:
-        transcript_chunk: Premier morceau de la transcription
-        user_choices: Dictionnaire des choix utilisateur
-        logger: Instance de logger injectée
-        config: Instance de configuration injectée
+        transcript_chunk: Premier segment de la transcription
+        user_choices: Dictionnaire des choix utilisateur pour la personnalisation
         
     Returns:
-        str: Le prompt initial
+        Prompt initial formaté pour le premier segment
     """
     base_prompt = load_base_prompt(logger=logger, config=config)
-    instructions = build_common_instructions(user_choices, logger=logger)
+    instructions = build_common_instructions(user_choices, logger=logger, config=config)
 
     prompt = f"""\
     {base_prompt}
@@ -142,28 +155,29 @@ def build_initial_prompt(transcript_chunk: str, user_choices: dict, logger=None,
 
     {instructions}
     """
-    logger.debug(f"📥 Initial prompt created with chunk 1")
+    
+    logger.debug("📥 Initial prompt created with chunk 1")
     return prompt.strip()
 
 @inject_dependencies
 def build_update_prompt(transcript_chunk: str, prev_summary: str, chunk_id: int, user_choices: dict, logger=None, config=None) -> str:
-    """
-    Crée le prompt pour les chunks suivants.
-    Le résumé précédent est transmis pour mise à jour.
+    """Crée le prompt pour les segments suivants de la transcription.
+    
+    Construit un prompt pour mettre à jour et enrichir le résumé existant
+    avec un nouveau segment de la transcription. Permet un traitement séquentiel
+    des longues transcriptions tout en maintenant la cohérence.
     
     Args:
-        transcript_chunk: Morceau de transcription actuel
-        prev_summary: Résumé précédent
-        chunk_id: Numéro du chunk actuel
-        user_choices: Dictionnaire des choix utilisateur
-        logger: Instance de logger injectée
-        config: Instance de configuration injectée
+        transcript_chunk: Segment actuel de la transcription
+        prev_summary: Résumé des segments précédents
+        chunk_id: Numéro du segment actuel
+        user_choices: Dictionnaire des choix utilisateur pour la personnalisation
         
     Returns:
-        str: Le prompt de mise à jour
-    """ 
+        Prompt de mise à jour formaté pour le segment actuel
+    """
     base_prompt = load_base_prompt(logger=logger, config=config)
-    instructions = build_common_instructions(user_choices, logger=logger)
+    instructions = build_common_instructions(user_choices, logger=logger, config=config)
 
     prompt = f"""
 You are continuing a summarization task.

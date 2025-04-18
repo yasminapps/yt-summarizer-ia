@@ -42,7 +42,7 @@ def sanitize_user_choices(initial_form_data, logger=None):
 
     except Exception as e:
         logger.exception(f"❌ Error sanitizing user choices: {str(e)}")
-        raise
+        raise  
 
 @timed
 @inject_dependencies
@@ -69,7 +69,7 @@ def summarize(logger=None, config=None):
         # 2. Extraction du texte depuis YouTube
       
         try:
-            transcript_text = get_transcript_text(youtube_url, logger=logger, config=config).replace('\n', ' ')
+            transcript_text = get_transcript_text(youtube_url).replace('\n', ' ')
             logger.debug("✅ Transcript successfully retrieved")
         except ValueError as e:
             return jsonify({
@@ -101,13 +101,8 @@ def summarize(logger=None, config=None):
         }
         
         # 5. Appels successifs à l'IA
-        chunks = split_transcript_by_tokens(
-            transcript_text, 
-            max_tokens=config.MAX_TOKENS, 
-            model=config.OPENAI_ENCODING_MODEL, 
-            logger=logger, 
-            config=config
-        )
+        chunks = split_transcript_by_tokens(transcript_text, max_tokens=config.MAX_TOKENS, 
+                                           model=config.OPENAI_ENCODING_MODEL, logger=logger, config=config)
         logger.debug(f"✂️ Transcript split into {len(chunks)} parts")
 
         current_summary = None
@@ -115,21 +110,9 @@ def summarize(logger=None, config=None):
             logger.info(f"🧩 Processing chunk {idx + 1}/{len(chunks)}")
 
             if idx == 0:
-                prompt = build_initial_prompt(
-                    chunk, 
-                    user_choices, 
-                    logger=logger, 
-                    config=config
-                )
+                prompt = build_initial_prompt(chunk, user_choices)
             else:
-                prompt = build_update_prompt(
-                    chunk, 
-                    current_summary, 
-                    idx + 1, 
-                    user_choices,
-                    logger=logger, 
-                    config=config
-                )
+                prompt = build_update_prompt(chunk, current_summary, idx + 1, user_choices)
                 
             response_data = client(prompt)
             current_summary = response_data.get("response", "Error")
@@ -162,7 +145,7 @@ def get_transcript_only(logger=None):
         
         form_data = sanitize_user_choices(request.form, logger=logger)
         youtube_url = form_data["youtube_url"]
-        transcript = get_transcript_text(youtube_url, logger=logger)
+        transcript = get_transcript_text(youtube_url)
         return jsonify({"transcript": transcript}), 200
 
     except ValueError as e:
