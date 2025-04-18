@@ -1,18 +1,52 @@
 from pathlib import Path
-from utils.logger import get_logger
+from utils.logger import Logger
+from utils.config import Config
+from utils.dependency_injector import inject_dependencies, inject_logger
 
-logger = get_logger()
-
-# Charger le template prompt une seule fois au démarrage du module
+# On chargera le prompt au moment de l'appel des fonctions
 BASE_PROMPT_PATH = "prompts/prompt_yt_summary.md"
-try:
-    BASE_PROMPT = Path(BASE_PROMPT_PATH).read_text()
-    logger.info(f"✅ Base prompt template loaded from {BASE_PROMPT_PATH}")
-except Exception as e:
-    logger.error(f"❌ Failed to load base prompt template: {e}")
-    BASE_PROMPT = "You are an AI assistant that summarizes YouTube videos based on their transcripts."
+BASE_PROMPT = None  # Sera chargé dynamiquement
 
-def build_common_instructions(user_choices: dict) -> str:
+@inject_dependencies
+def load_base_prompt(logger=None, config=None):
+    """
+    Charge le template de prompt depuis le fichier.
+    Cette fonction est appelée automatiquement par les constructeurs de prompts.
+    
+    Args:
+        logger: Instance de logger injectée
+        config: Instance de configuration injectée
+        
+    Returns:
+        str: Le contenu du template de prompt
+    """
+    global BASE_PROMPT
+    
+    if BASE_PROMPT is not None:
+        return BASE_PROMPT
+        
+    try:
+        prompt_path = config.PROMPT_TEMPLATE_PATH if hasattr(config, 'PROMPT_TEMPLATE_PATH') else BASE_PROMPT_PATH
+        BASE_PROMPT = Path(prompt_path).read_text()
+        logger.info(f"✅ Base prompt template loaded from {prompt_path}")
+        return BASE_PROMPT
+    except Exception as e:
+        logger.error(f"❌ Failed to load base prompt template: {e}")
+        BASE_PROMPT = "You are an AI assistant that summarizes YouTube videos based on their transcripts."
+        return BASE_PROMPT
+
+@inject_logger
+def build_common_instructions(user_choices: dict, logger=None) -> str:
+    """
+    Construit les instructions communes pour tous les types de prompts.
+    
+    Args:
+        user_choices: Dictionnaire des choix utilisateur
+        logger: Instance de logger injectée
+        
+    Returns:
+        str: Les instructions formatées pour le prompt
+    """
     detail_mapping = {
         "short": "300 words maximum.",
         "medium": "Between 800 and 1000 words.",
@@ -30,6 +64,8 @@ def build_common_instructions(user_choices: dict) -> str:
         "text": "Use ALWAYS AND ONLY plain text. NO BULLET POINTS.",
         "mixed": "Mix text and bullet points."
     }
+
+    logger.debug(f"🛠️ Construction des instructions avec les choix: {user_choices}")
 
     instructions = f"""
 ### Specific instructions for this summary:
@@ -51,26 +87,48 @@ def build_common_instructions(user_choices: dict) -> str:
     instructions += "\n- The entire summary must be written in Markdown format."
     return instructions.strip()
 
-def build_final_prompt(transcript: str, user_choices: dict) -> str:
+@inject_dependencies
+def build_final_prompt(transcript: str, user_choices: dict, logger=None, config=None) -> str:
     """
     Assemble le prompt complet (1 bloc unique).
     Utilise build_common_instructions() pour homogénéité.
+    
+    Args:
+        transcript: Texte de la transcription
+        user_choices: Dictionnaire des choix utilisateur
+        logger: Instance de logger injectée
+        config: Instance de configuration injectée
+        
+    Returns:
+        str: Le prompt complet
     """
-    instructions = build_common_instructions(user_choices)
+    base_prompt = load_base_prompt(logger=logger, config=config)
+    instructions = build_common_instructions(user_choices, logger=logger)
 
-    final_prompt = f"{BASE_PROMPT}\n\nTranscript:\n{transcript}\n\n{instructions}"
+    final_prompt = f"{base_prompt}\n\nTranscript:\n{transcript}\n\n{instructions}"
     logger.debug(f"📦 Final prompt (single block):\n{final_prompt[:500]}...")
     return final_prompt.strip()
 
-def build_initial_prompt(transcript_chunk: str, user_choices: dict) -> str:
+@inject_dependencies
+def build_initial_prompt(transcript_chunk: str, user_choices: dict, logger=None, config=None) -> str:
     """
     Crée le prompt pour le premier chunk de transcript.
     Utilise les instructions dynamiques communes.
+    
+    Args:
+        transcript_chunk: Premier morceau de la transcription
+        user_choices: Dictionnaire des choix utilisateur
+        logger: Instance de logger injectée
+        config: Instance de configuration injectée
+        
+    Returns:
+        str: Le prompt initial
     """
-    instructions = build_common_instructions(user_choices)
+    base_prompt = load_base_prompt(logger=logger, config=config)
+    instructions = build_common_instructions(user_choices, logger=logger)
 
     prompt = f"""\
-    {BASE_PROMPT}
+    {base_prompt}
 
     You will receive a long transcript split into several parts. Your task is to summarize them sequentially.
     Start by summarizing the first part only.
@@ -87,12 +145,25 @@ def build_initial_prompt(transcript_chunk: str, user_choices: dict) -> str:
     logger.debug(f"📥 Initial prompt created with chunk 1")
     return prompt.strip()
 
-def build_update_prompt(transcript_chunk: str, prev_summary: str, chunk_id: int, user_choices: dict) -> str:
+@inject_dependencies
+def build_update_prompt(transcript_chunk: str, prev_summary: str, chunk_id: int, user_choices: dict, logger=None, config=None) -> str:
     """
     Crée le prompt pour les chunks suivants.
     Le résumé précédent est transmis pour mise à jour.
+    
+    Args:
+        transcript_chunk: Morceau de transcription actuel
+        prev_summary: Résumé précédent
+        chunk_id: Numéro du chunk actuel
+        user_choices: Dictionnaire des choix utilisateur
+        logger: Instance de logger injectée
+        config: Instance de configuration injectée
+        
+    Returns:
+        str: Le prompt de mise à jour
     """ 
-    instructions = build_common_instructions(user_choices)
+    base_prompt = load_base_prompt(logger=logger, config=config)
+    instructions = build_common_instructions(user_choices, logger=logger)
 
     prompt = f"""
 You are continuing a summarization task.
@@ -104,7 +175,7 @@ Now integrate this new transcript part (Part {chunk_id}) into the existing summa
 {transcript_chunk}
 
 Update and expand the summary, keeping consistency and structure.
-{BASE_PROMPT}
+{base_prompt}
 {instructions}
 """.strip()
 

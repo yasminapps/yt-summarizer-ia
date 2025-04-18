@@ -3,20 +3,19 @@ from services.youtube_transcript import get_transcript_text
 from services.ollama_client import call_ollama_llm
 from services.openai_client import call_openai_llm
 from services.ia_client_factory import get_llm_client
-from utils.logger import get_logger
+from utils.logger import Logger
 from utils.decorators import timed, safe_exec
 from services.prompt_builder import build_final_prompt, build_initial_prompt, build_update_prompt
 from utils.input_sanitizer import sanitize_form_data
-from utils.config import config
+from utils.config import Config
 import markdown
 from utils.count_tokens import count_tokens
 from services.text_splitter import split_transcript_by_tokens
 from services.youtube_transcript import get_transcript_text
+from utils.dependency_injector import inject_dependencies, inject_logger, inject_config
 
-logger = get_logger()
-
-
-def sanitize_user_choices(initial_form_data):
+@inject_logger
+def sanitize_user_choices(initial_form_data, logger=None):
     try:
         # 1. Récupération et sanitisation des champs du formulaire
         raw_form_data = {
@@ -24,9 +23,9 @@ def sanitize_user_choices(initial_form_data):
             "engine": initial_form_data.get("engine", "openai-default"),  # Valeur par défaut : openai-default
             "api_key": initial_form_data.get("api_key", ""),
             "api_url": initial_form_data.get("api_url", ""),
-            "summary_type": initial_form_data.get("summary_type", config.DEFAULT_SUMMARY_TYPE),
-            "language": initial_form_data.get("language", config.DEFAULT_LANGUAGE),
-            "detail_level": initial_form_data.get("detail_level", config.DEFAULT_DETAIL_LEVEL),
+            "summary_type": initial_form_data.get("summary_type", "full"),
+            "language": initial_form_data.get("language", "en"),
+            "detail_level": initial_form_data.get("detail_level", "medium"),
             "style": initial_form_data.get("style", "mixed"),
             "add_emojis": initial_form_data.get("add_emojis", "yes"),
             "add_tables": initial_form_data.get("add_tables", "yes"),
@@ -46,11 +45,12 @@ def sanitize_user_choices(initial_form_data):
         raise
 
 @timed
-def summarize():
+@inject_dependencies
+def summarize(logger=None, config=None):
     try:
         logger.info("🔁 New summarization request received")
         transcript_text = ""
-        form_data = sanitize_user_choices(request.form)
+        form_data = sanitize_user_choices(request.form, logger=logger)
         
         # Utiliser directement le moteur IA sélectionné (simplifié)
         engine = form_data["engine"]
@@ -69,7 +69,7 @@ def summarize():
         # 2. Extraction du texte depuis YouTube
       
         try:
-            transcript_text = get_transcript_text(youtube_url).replace('\n', ' ')
+            transcript_text = get_transcript_text(youtube_url, logger=logger, config=config).replace('\n', ' ')
             logger.debug("✅ Transcript successfully retrieved")
         except ValueError as e:
             return jsonify({
@@ -87,7 +87,7 @@ def summarize():
 
         # 3. Sélection du client IA
         logger.info(f"🧠 Calling {engine} with API URL: {api_url}")
-        client = get_llm_client(engine, api_url=api_url, api_key=api_key)
+        client = get_llm_client(engine, api_url=api_url, api_key=api_key, logger=logger, config=config)
 
         # 4. Préparation des options pour le prompt
         user_choices = {
@@ -101,7 +101,13 @@ def summarize():
         }
         
         # 5. Appels successifs à l'IA
-        chunks = split_transcript_by_tokens(transcript_text, max_tokens=config.MAX_TOKENS, model=config.OPENAI_ENCODING_MODEL)
+        chunks = split_transcript_by_tokens(
+            transcript_text, 
+            max_tokens=config.MAX_TOKENS, 
+            model=config.OPENAI_ENCODING_MODEL, 
+            logger=logger, 
+            config=config
+        )
         logger.debug(f"✂️ Transcript split into {len(chunks)} parts")
 
         current_summary = None
@@ -109,9 +115,21 @@ def summarize():
             logger.info(f"🧩 Processing chunk {idx + 1}/{len(chunks)}")
 
             if idx == 0:
-                prompt = build_initial_prompt(chunk, user_choices)
+                prompt = build_initial_prompt(
+                    chunk, 
+                    user_choices, 
+                    logger=logger, 
+                    config=config
+                )
             else:
-                prompt = build_update_prompt(chunk, current_summary, idx + 1, user_choices)
+                prompt = build_update_prompt(
+                    chunk, 
+                    current_summary, 
+                    idx + 1, 
+                    user_choices,
+                    logger=logger, 
+                    config=config
+                )
                 
             response_data = client(prompt)
             current_summary = response_data.get("response", "Error")
@@ -135,16 +153,16 @@ def summarize():
             "execution_time": 0
         }), 500
 
-
-def get_transcript_only():
+@inject_logger
+def get_transcript_only(logger=None):
     try:
         youtube_url = request.form.get("youtube_url", "")
         if not youtube_url:
             return jsonify({"error": "URL YouTube invalide. Veuillez fournir une URL valide."}), 400
         
-        form_data = sanitize_user_choices(request.form)
+        form_data = sanitize_user_choices(request.form, logger=logger)
         youtube_url = form_data["youtube_url"]
-        transcript = get_transcript_text(youtube_url)
+        transcript = get_transcript_text(youtube_url, logger=logger)
         return jsonify({"transcript": transcript}), 200
 
     except ValueError as e:
