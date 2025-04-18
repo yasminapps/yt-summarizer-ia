@@ -4,12 +4,14 @@ from services.prompt_builder import (
     build_final_prompt, 
     build_initial_prompt, 
     build_update_prompt,
-    load_base_prompt,
-    BASE_PROMPT
+    load_base_prompt
 )
 from unittest.mock import patch, MagicMock
 from utils.logger import Logger
 from utils.config import Config
+
+# Valeur de test pour BASE_PROMPT
+TEST_PROMPT = "You are an AI assistant that summarizes YouTube videos based on their transcripts."
 
 # Fixtures
 @pytest.fixture
@@ -108,27 +110,27 @@ def test_build_common_instructions_invalid_options(invalid_user_choices, mock_de
 def test_build_final_prompt(minimal_user_choices, mock_dependencies):
     mock_logger, mock_config = mock_dependencies
     
-    # Mock the load_base_prompt function to return the global BASE_PROMPT
-    with patch('services.prompt_builder.load_base_prompt', return_value=BASE_PROMPT):
+    # Mock la fonction load_base_prompt pour retourner un prompt de test
+    with patch('services.prompt_builder.load_base_prompt', return_value=TEST_PROMPT):
         fake_transcript = "This is a test transcript"
         prompt = build_final_prompt(fake_transcript, minimal_user_choices, logger=mock_logger, config=mock_config)
-        assert BASE_PROMPT in prompt
+        assert TEST_PROMPT in prompt
         assert "Transcript:\nThis is a test transcript" in prompt
         assert "Language: en" in prompt
 
 def test_build_final_prompt_empty_transcript(minimal_user_choices, mock_dependencies):
     mock_logger, mock_config = mock_dependencies
     
-    with patch('services.prompt_builder.load_base_prompt', return_value=BASE_PROMPT):
+    with patch('services.prompt_builder.load_base_prompt', return_value=TEST_PROMPT):
         prompt = build_final_prompt("", minimal_user_choices, logger=mock_logger, config=mock_config)
-        assert BASE_PROMPT in prompt
+        assert TEST_PROMPT in prompt
         assert "Transcript:\n" in prompt
-        assert len(prompt) > len(BASE_PROMPT)  # Assurez-vous que le prompt contient plus que juste le prompt de base
+        assert len(prompt) > len(TEST_PROMPT)  # Assurez-vous que le prompt contient plus que juste le prompt de base
 
 def test_build_final_prompt_with_logger(minimal_user_choices, mock_dependencies):
     mock_logger, mock_config = mock_dependencies
     
-    with patch('services.prompt_builder.load_base_prompt', return_value=BASE_PROMPT):
+    with patch('services.prompt_builder.load_base_prompt', return_value=TEST_PROMPT):
         fake_transcript = "Test transcript"
         prompt = build_final_prompt(fake_transcript, minimal_user_choices, logger=mock_logger, config=mock_config)
         mock_logger.debug.assert_called()  # Vérifie que le logger a été appelé
@@ -138,10 +140,10 @@ def test_build_final_prompt_with_logger(minimal_user_choices, mock_dependencies)
 def test_build_initial_prompt(minimal_user_choices, mock_dependencies):
     mock_logger, mock_config = mock_dependencies
     
-    with patch('services.prompt_builder.load_base_prompt', return_value=BASE_PROMPT):
+    with patch('services.prompt_builder.load_base_prompt', return_value=TEST_PROMPT):
         fake_chunk = "This is chunk 1"
         prompt = build_initial_prompt(fake_chunk, minimal_user_choices, logger=mock_logger, config=mock_config)
-        assert BASE_PROMPT in prompt
+        assert TEST_PROMPT in prompt
         assert "You will receive a long transcript split into several parts" in prompt
         assert "Transcript Part 1:" in prompt
         assert "This is chunk 1" in prompt
@@ -149,7 +151,7 @@ def test_build_initial_prompt(minimal_user_choices, mock_dependencies):
 def test_build_initial_prompt_with_logger(minimal_user_choices, mock_dependencies):
     mock_logger, mock_config = mock_dependencies
     
-    with patch('services.prompt_builder.load_base_prompt', return_value=BASE_PROMPT):
+    with patch('services.prompt_builder.load_base_prompt', return_value=TEST_PROMPT):
         fake_chunk = "This is chunk 1"
         prompt = build_initial_prompt(fake_chunk, minimal_user_choices, logger=mock_logger, config=mock_config)
         mock_logger.debug.assert_called_with("📥 Initial prompt created with chunk 1")
@@ -158,7 +160,7 @@ def test_build_initial_prompt_with_logger(minimal_user_choices, mock_dependencie
 def test_build_update_prompt(minimal_user_choices, mock_dependencies):
     mock_logger, mock_config = mock_dependencies
     
-    with patch('services.prompt_builder.load_base_prompt', return_value=BASE_PROMPT):
+    with patch('services.prompt_builder.load_base_prompt', return_value=TEST_PROMPT):
         fake_chunk = "This is chunk 2"
         prev_summary = "Previous summary"
         chunk_id = 2
@@ -176,12 +178,12 @@ def test_build_update_prompt(minimal_user_choices, mock_dependencies):
         assert "Previous summary" in prompt
         assert "Now integrate this new transcript part (Part 2)" in prompt
         assert "This is chunk 2" in prompt
-        assert BASE_PROMPT in prompt
+        assert TEST_PROMPT in prompt
 
 def test_build_update_prompt_with_larger_chunk_id(minimal_user_choices, mock_dependencies):
     mock_logger, mock_config = mock_dependencies
     
-    with patch('services.prompt_builder.load_base_prompt', return_value=BASE_PROMPT):
+    with patch('services.prompt_builder.load_base_prompt', return_value=TEST_PROMPT):
         fake_chunk = "This is chunk 5"
         prev_summary = "Previous summary of chunks 1-4"
         chunk_id = 5
@@ -201,7 +203,7 @@ def test_build_update_prompt_with_larger_chunk_id(minimal_user_choices, mock_dep
 def test_build_update_prompt_with_logger(minimal_user_choices, mock_dependencies):
     mock_logger, mock_config = mock_dependencies
     
-    with patch('services.prompt_builder.load_base_prompt', return_value=BASE_PROMPT):
+    with patch('services.prompt_builder.load_base_prompt', return_value=TEST_PROMPT):
         fake_chunk = "This is chunk 3"
         prev_summary = "Previous summary"
         chunk_id = 3
