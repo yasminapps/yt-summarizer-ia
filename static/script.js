@@ -62,18 +62,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
     form.addEventListener("submit", async function (e) {
         e.preventDefault(); // block default form submission
-
+        const actionUrl = e.submitter.formAction;
         // Reset display
         summaryResult.innerHTML = "";
         errorMessage.textContent = "";
         tokenInfo.textContent = "";
         const formData = new FormData(form);
-
+        document.getElementById("summary-actions").style.display = "none";
+        document.getElementById("transcript-actions").style.display = "none";   
         document.getElementById("summary-container").style.display = "block";
         startLoadingAnimation();
 
         try {
-            const response = await fetch("/summarize", {
+            const response = await fetch(actionUrl, {
                 method: "POST",
                 body: formData
             });
@@ -84,9 +85,22 @@ document.addEventListener("DOMContentLoaded", function () {
             stopLoadingAnimation();
 
             if (response.ok) {
-                summaryResult.innerHTML = data.summary;
-                summaryResult.style.whiteSpace = "normal";
-                document.getElementById("summary-actions").style.display = "block";     
+                summaryResult.innerHTML = ""  
+             
+                if (data.summary) {
+                    window.lastTranscript = data.transcript;
+                    summaryResult.innerHTML = data.summary;
+                    summaryResult.style.whiteSpace = "normal";
+                    document.getElementById("summary-actions").style.display = "block";
+                    document.getElementById("transcript-actions").style.display = "block";
+                }
+
+                if (data.transcript) {
+                    window.lastTranscript = data.transcript;
+                    summaryResult.style.whiteSpace = "pre-wrap";
+                    document.getElementById("transcript-actions").style.display = "block";
+                }
+
                 if (data.tokens && Object.keys(data.tokens).length > 0) {
                     const totalTokens = data.tokens.total_tokens || "N/A";
                     tokenInfo.textContent = `Tokens used : ${totalTokens}`;

@@ -16,18 +16,16 @@
 
       <fieldset>
         <legend>Choose AI Engine</legend>
-        <label><input type="radio" name="engine" id="ollama" value="ollama" checked> 🖥️ Ollama (local)</label>
+        <label><input type="radio" name="engine" id="ollama" value="ollama" > 🖥️ Ollama (local)</label>
         <label><input type="radio" name="engine" id="openai-user" value="openai-user"> 🌐 Your OpenAI API</label>
-        <div id="openai-config" style="display: none;">
+        <div id="openai-config" style="display: none;" >
           <input type="text" id="api_url" name="api_url" placeholder="API URL">
           <input type="password" id="api_key" name="api_key" placeholder="API Key">
         </div>
         <label>
-        <input type="radio" name="engine" id="openai-default" value="openai-default">
+        <input type="radio" name="engine" id="openai-default" value="openai-default" checked="checked">
         🌐 OpenAI API – Default
         </label>
-        <!-- Champ caché pour maintenir la compatibilité avec le backend -->
-        <input type="hidden" name="ia_source" id="ia_source_hidden">
       </fieldset>
 
       <fieldset>
@@ -109,22 +107,15 @@
 
       </fieldset>
 
-      <button type="submit" class="btn-submit">▶️ Generate Summary</button>
+      <div style="display: flex; gap: 10px; margin-top: 20px;">
+        <button type="submit" formaction="/summarize" id="generate-summary" class="btn-submit">▶️ Generate Summary</button>
+        <button type="submit" formaction="/transcript" id="generate-transcript" class="btn-submit">📄 Generate Transcript Only</button>
+      </div>
+    </div>
     </form>
 
     <div id="summary-container" style="display: none;">
       <h2>Summary</h2>
-      <div id="summary-actions" style="margin-top: 20px; display: none; text-align: center;">
-        <div style="margin-bottom: 10px;">
-          <strong>📄 Summary Actions</strong><br>
-          <button onclick="downloadSummary()">📥 Download Summary</button>
-          <button onclick="copySummary()">📋 Copy Summary</button>
-        </div>
-        <div style="margin-top: 15px;">
-          <strong>📝 Transcript Actions</strong><br>
-          <button onclick="downloadTranscript()">📥 Download Transcript</button>
-          <button onclick="copyTranscript()">📋 Copy Transcript</button>
-        </div>
         <span id="copy-feedback" class="copy-feedback" style="display: block; margin-top: 10px;"></span>
       </div>
       <div id="loading-animation" style="display: none; align-items: center; gap: 10px;">
@@ -134,8 +125,21 @@
       <div id="token-info" class="token-info"></div>
       <div id="error-message" class="error-message"></div>
 
+      <div style="margin-bottom: 10px;">
+        <div id="summary-actions" class="summary-actions" style="margin-top: 20px; display: none; text-align: center;">
+          <strong>📄 Summary</strong><br>
+          <button onclick="copySummary()">📋 Copy Summary</button>
+          <button onclick="downloadSummary()">⬇️ Download Summary</button>
+        </div>
+      </div>
+      <div style="margin-top: 15px;">
+        <div id="transcript-actions" class="summary-actions" style="margin-top: 20px; display: none; text-align: center;">
+          <strong>📝 Transcript</strong><br>
+          <button onclick="copyTranscript()">📋 Copy Transcript</button>
+          <button onclick="downloadTranscript()">⬇️ Download Transcript</button>
+        </div>
+      </div>
     </div>
-  </div>
   <br><br><br><br>
   <section class="faq">
     <h2>FAQ — Questions fréquentes</h2>

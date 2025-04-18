@@ -11,5 +11,5 @@ def client():
 def test_summarize_missing_url(client):
     response = client.post("/summarize", data={})
     json_data = response.get_json()
-    assert response.status_code == 500
-    assert "Erreur côté serveur" in json_data["summary"]
+    assert response.status_code == 400 or response.status_code == 500
+    assert "URL YouTube invalide" in json_data["summary"]

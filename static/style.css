@@ -109,18 +109,21 @@ input[type="radio"] {
     100% { opacity: 1; }
 }
 
-#summary-actions button {
+.summary-actions button {
     margin-right: 10px;
     padding: 6px 12px;
     font-size: 14px;
+    background-color: #4a90e2;
+    color: white;
     border: none;
-    border-radius: 5px;
-    background-color: #ddd;
+    border-radius: 6px;
     cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
 }
 
-#summary-actions button:hover {
-    background-color: #ccc;
+.summary-actions button:hover {
+    background-color: #3a78c2;
+    
 }
 
 .copy-feedback {

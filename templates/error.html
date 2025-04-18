@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Erreur - YouTube Résumeur IA</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container error-container">
+        <div class="logo-container">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="YouTube Résumeur IA">
+            <h1>YouTube Résumeur IA</h1>
+        </div>
+        <div class="error-box">
+            <h2>Erreur</h2>
+            <p class="error-message">{{ error_message }}</p>
+            <div class="error-actions">
+                <a href="/" class="btn-back">Retour à l'accueil</a>
+            </div>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html> 
