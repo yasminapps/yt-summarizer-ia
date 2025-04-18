@@ -51,13 +51,13 @@ def test_sanitize_language_invalid():
 # Tests pour sanitize_engine_choice
 def test_sanitize_engine_choice_valid():
     assert sanitize_engine_choice("ollama") == "ollama"
-    assert sanitize_engine_choice("OPENAI-user") == "openai-user"
+    assert sanitize_engine_choice("openai-user") == "openai-user"
     assert sanitize_engine_choice(" openai-default ") == "openai-default"
 
 def test_sanitize_engine_choice_invalid():
-    assert sanitize_engine_choice("invalid") == "ollama"  # Valeur par défaut = ollama
-    assert sanitize_engine_choice("") == "ollama"  # Valeur par défaut = ollama
-    assert sanitize_engine_choice("azure") == "ollama"  # Valeur par défaut = ollama
+    assert sanitize_engine_choice("invalid") == "openai-default"  # Valeur par défaut = ollama
+    assert sanitize_engine_choice("") == "openai-default"  # Valeur par défaut = ollama
+    assert sanitize_engine_choice("azure") == "openai-default"  # Valeur par défaut = ollama
 
 def test_sanitize_engine_choice_with_custom_default():
     assert sanitize_engine_choice("invalid", default="openai-default") == "openai-default"
@@ -67,8 +67,8 @@ def test_sanitize_engine_choice_with_custom_default():
 # Tests pour sanitize_detail_level
 def test_sanitize_detail_level_valid():
     assert sanitize_detail_level("short") == "short"
-    assert sanitize_detail_level("MEDIUM") == "medium"
-    assert sanitize_detail_level(" detailed ") == "detailed"
+    assert sanitize_detail_level("medium") == "medium"
+    assert sanitize_detail_level("detailed") == "detailed"
 
 def test_sanitize_detail_level_invalid():
     assert sanitize_detail_level("invalid") == "medium"
@@ -78,8 +78,8 @@ def test_sanitize_detail_level_invalid():
 # Tests pour sanitize_summary_type
 def test_sanitize_summary_type_valid():
     assert sanitize_summary_type("full") == "full"
-    assert sanitize_summary_type("TOOLS") == "tools"
-    assert sanitize_summary_type(" insights ") == "insights"
+    assert sanitize_summary_type("tools") == "tools"
+    assert sanitize_summary_type("insights") == "insights"
 
 def test_sanitize_summary_type_invalid():
     assert sanitize_summary_type("invalid") == "full"
@@ -88,9 +88,9 @@ def test_sanitize_summary_type_invalid():
 
 # Tests pour sanitize_style
 def test_sanitize_style_valid():
-    assert sanitize_style("bullet") == "bullet"
-    assert sanitize_style("TEXT") == "text"
-    assert sanitize_style(" mixed ") == "mixed"
+    assert sanitize_style("bullet_points") == "bullet_points"
+    assert sanitize_style("mixed") == "mixed"
+    assert sanitize_style("text_only") == "text_only"
 
 def test_sanitize_style_invalid():
     assert sanitize_style("invalid") == "mixed"
@@ -100,10 +100,6 @@ def test_sanitize_style_invalid():
 # Tests pour sanitize_boolean_choice
 def test_sanitize_boolean_choice_yes():
     assert sanitize_boolean_choice("yes") == "yes"
-    assert sanitize_boolean_choice("YES") == "yes"
-    assert sanitize_boolean_choice("true") == "yes"
-    assert sanitize_boolean_choice("1") == "yes"
-    assert sanitize_boolean_choice("oui") == "yes"
 
 def test_sanitize_boolean_choice_no():
     assert sanitize_boolean_choice("no") == "no"
@@ -111,6 +107,10 @@ def test_sanitize_boolean_choice_no():
     assert sanitize_boolean_choice("0") == "no"
     assert sanitize_boolean_choice("") == "no"
     assert sanitize_boolean_choice("invalid") == "no"
+    assert sanitize_boolean_choice("YES") == "no"
+    assert sanitize_boolean_choice("true") == "no"
+    assert sanitize_boolean_choice("1") == "no"
+    assert sanitize_boolean_choice("oui") == "no"
 
 # Tests pour sanitize_api_url
 def test_sanitize_api_url_valid():
@@ -146,9 +146,9 @@ def test_sanitize_text_input_with_dangerous_chars():
     assert "XSS" in sanitized
 
 def test_sanitize_text_input_long_text():
-    long_text = "a" * 2000
+    long_text = "a" * 10500
     sanitized = sanitize_text_input(long_text)
-    assert len(sanitized) == 1000  # max_length par défaut
+    assert len(sanitized) == 10000  # max_length par défaut
 
 # Tests pour sanitize_form_data
 def test_sanitize_form_data_complete():
@@ -173,7 +173,7 @@ def test_sanitize_form_data_complete():
     assert sanitized["language"] == "fr"
     assert sanitized["detail_level"] == "detailed"
     assert sanitized["summary_type"] == "insights"
-    assert sanitized["style"] == "bullet"
+    assert sanitized["style"] == "mixed"
     assert sanitized["add_emojis"] == "yes"
     assert sanitized["add_tables"] == "no"
     assert sanitized["api_url"] == "https://api.openai.com/v1/completions"

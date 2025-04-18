@@ -60,7 +60,10 @@ def summarize():
         detail_level = form_data["detail_level"]
         youtube_url = form_data["youtube_url"]
 
+        # Masquer la clé API dans les logs
+        masked_api_key = "***" if api_key else ""
         logger.debug(f"URL: {youtube_url} | Engine: {engine} | Type: {summary_type} | Lang: {language} | Detail: {detail_level}")
+        logger.info(f"🧠 Appel API avec {engine} | API URL: {api_url if api_url else 'default'} | API Key: {masked_api_key}")
 
         # 2. Extraction du texte depuis YouTube
       
@@ -82,7 +85,7 @@ def summarize():
             }), 500
 
         # 3. Sélection du client IA
-        logger.info(f"🧠 Calling {engine} with API URL: {api_url}")
+        logger.info(f"🧠 Calling {engine}")
         client = get_llm_client(engine, api_url=api_url, api_key=api_key)
 
         # 4. Préparation des options pour le prompt

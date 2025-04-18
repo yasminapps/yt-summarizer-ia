@@ -1,10 +1,10 @@
 import pytest
 from services.ia_client_factory import get_llm_client
 
-def mock_openai(prompt, api_url=None, api_key=None):
+def mock_openai(prompt, **kwargs):
     return {"response": f"openai: {prompt}", "tokens_used": {"prompt_tokens": 5}}
 
-def mock_ollama(prompt):
+def mock_ollama(prompt, **kwargs):
     return {"response": f"ollama: {prompt}", "tokens_used": {}, "execution_time": 0.0}
 
 # Patch les fonctions pour les tests

@@ -4,6 +4,10 @@ Module dédié à la sanitisation des entrées utilisateur pour éviter les inje
 import re
 import html
 from typing import Dict, List, Any, Optional, Union
+from utils.logger import get_logger
+from urllib.parse import urlparse
+
+logger = get_logger()
 
 def sanitize_url(url: str) -> str:
     """
@@ -24,84 +28,67 @@ def sanitize_language(language: str) -> str:
     Sanitise le code de langue pour n'autoriser que les codes ISO valides.
     """
     language = language.strip().lower()
-    # Liste non exhaustive des codes de langue ISO 639-1
-    valid_languages = ['en', 'fr', 'es', 'de', 'it', 'pt', 'nl', 'ru', 'zh', 'ja', 'ko', 'ar']
-    
-    if language in valid_languages:
+    if re.match(r'^[a-z]{2}$', language):
         return language
     return "en"  # Langue par défaut
 
-def sanitize_engine_choice(engine: str, default: str = "ollama") -> str:
+def sanitize_engine_choice(choice: str, default: str = "openai-default") -> str:
     """
     Sanitise le choix du moteur IA.
     Accepte un moteur par défaut en paramètre.
     """
-    engine = engine.strip().lower()
-    valid_engines = ['ollama', 'openai-user', 'openai-default']
-    
-    if engine in valid_engines:
-        return engine
-    return default  # Utilise le moteur par défaut fourni
+    valid_choices = ["openai-default", "openai-user", "ollama"]
+    return choice if choice in valid_choices else default
 
 def sanitize_detail_level(detail_level: str) -> str:
     """
     Sanitise le niveau de détail demandé.
     """
-    detail_level = detail_level.strip().lower()
-    valid_levels = ['short', 'medium', 'detailed']
-    
-    if detail_level in valid_levels:
-        return detail_level
-    return "medium"  # Niveau par défaut
+    valid_levels = ["short", "medium", "detailed"]
+    return detail_level if detail_level in valid_levels else "medium"
 
 def sanitize_summary_type(summary_type: str) -> str:
     """
     Sanitise le type de résumé demandé.
     """
-    summary_type = summary_type.strip().lower()
-    valid_types = ['full', 'tools', 'insights']
-    
-    if summary_type in valid_types:
-        return summary_type
-    return "full"  # Type par défaut
+    valid_types = ["full", "tools", "insights"]
+    return summary_type if summary_type in valid_types else "full"
 
 def sanitize_style(style: str) -> str:
     """
     Sanitise le style de résumé demandé.
     """
-    style = style.strip().lower()
-    valid_styles = ['bullet', 'text', 'mixed']
-    
-    if style in valid_styles:
-        return style
-    return "mixed"  # Style par défaut
+    valid_styles = ["mixed", "bullet_points", "text_only"]
+    return style if style in valid_styles else "mixed"
 
 def sanitize_boolean_choice(choice: str) -> str:
     """
     Sanitise les choix booléens (oui/non).
     """
-    choice = choice.strip().lower()
-    if choice in ['yes', 'true', '1', 'oui']:
-        return "yes"
-    return "no"
+    return "yes" if choice == "yes" else "no"
 
 def sanitize_api_url(url: str) -> str:
     """
-    Sanitise l'URL de l'API.
+    Vérifie et nettoie une URL d'API. Retourne une chaîne vide si l'URL est invalide.
     """
     url = url.strip()
-    # Vérifie que c'est une URL valide
     if not url:
         return ""
-    
-    # Pattern pour les URLs normales et localhost
-    url_pattern = r'^https?://([a-zA-Z0-9.-]+\.[a-zA-Z]{2,}|localhost)(:\d+)?(/.*)?$'
-    if not re.match(url_pattern, url):
-        return ""
-    
-    return html.escape(url)
 
-def sanitize_text_input(text: str, max_length: int = 1000) -> str:
+    if not url.startswith(("http://", "https://")):
+        url = "https://" + url
+
+    parsed = urlparse(url)
+    if parsed.scheme not in ["http", "https"]:
+        return ""
+
+    if not parsed.netloc or "." not in parsed.netloc or parsed.hostname.startswith(".") or parsed.hostname.endswith("."):
+       # autorise localhost ou 127.0.0.1
+        if parsed.hostname not in ["localhost", "127.0.0.1"]:
+            return ""
+    
+    return url
+def sanitize_text_input(text: str, max_length: int = 10000) -> str:
     """
     Sanitise un texte général (instructions spécifiques, etc.).
     """
@@ -119,44 +106,57 @@ def sanitize_text_input(text: str, max_length: int = 1000) -> str:
 
 def sanitize_form_data(form_data: Dict[str, str]) -> Dict[str, str]:
     """
-    Sanitise toutes les données de formulaire en une fois.
+    Sanitise les données du formulaire pour éviter les injections
+    et uniformise les valeurs
     """
     sanitized = {}
     
-    # Sanitisation des champs connus
-    if 'youtube_url' in form_data:
-        sanitized['youtube_url'] = sanitize_url(form_data.get('youtube_url', ''))
+    # Nettoyage URL YouTube
+    youtube_url = form_data.get("youtube_url", "")
+    sanitized["youtube_url"] = sanitize_url(youtube_url)
     
-    # Utiliser openai-default comme valeur par défaut pour engine
-    if 'engine' in form_data:
-        sanitized['engine'] = sanitize_engine_choice(form_data.get('engine', ''), default="openai-default")
+    # Moteur d'IA (validation pour éviter des injections)
+    engine = form_data.get("engine", "openai-default")
+    sanitized["engine"] = sanitize_engine_choice(engine)
     
-    if 'language' in form_data:
-        sanitized['language'] = sanitize_language(form_data.get('language', ''))
+    # API Key (nettoyage et masquage dans les logs)
+    api_key = form_data.get("api_key", "").strip()
+    sanitized["api_key"] = api_key
     
-    if 'detail_level' in form_data:
-        sanitized['detail_level'] = sanitize_detail_level(form_data.get('detail_level', ''))
+    # Ne jamais logger la clé API complète
+    if api_key:
+        logger.debug(f"API Key fournie: {'*' * min(len(api_key), 5)}")
     
-    if 'summary_type' in form_data:
-        sanitized['summary_type'] = sanitize_summary_type(form_data.get('summary_type', ''))
+    # URL API (validation basique)
+    api_url = form_data.get("api_url", "")
+    sanitized["api_url"] = sanitize_api_url(api_url)
     
-    if 'style' in form_data:
-        sanitized['style'] = sanitize_style(form_data.get('style', ''))
+    # Type de résumé (validation)
+    summary_type = form_data.get("summary_type", "full")
+    sanitized["summary_type"] = sanitize_summary_type(summary_type)
     
-    if 'add_emojis' in form_data:
-        sanitized['add_emojis'] = sanitize_boolean_choice(form_data.get('add_emojis', ''))
+    # Langue (validation)
+    language = form_data.get("language", "en")
+    sanitized["language"] = sanitize_language(language)
     
-    if 'add_tables' in form_data:
-        sanitized['add_tables'] = sanitize_boolean_choice(form_data.get('add_tables', ''))
+    # Niveau de détail (validation)
+    detail_level = form_data.get("detail_level", "medium")
+    sanitized["detail_level"] = sanitize_detail_level(detail_level)
     
-    if 'api_url' in form_data:
-        sanitized['api_url'] = sanitize_api_url(form_data.get('api_url', ''))
+    # Style (validation)
+    style = form_data.get("style", "mixed")
+    sanitized["style"] = sanitize_style(style)
     
-    if 'api_key' in form_data:
-        # On ne sanitise pas la clé API, on la garde telle quelle
-        sanitized['api_key'] = form_data.get('api_key', '')
+    # Emojis (validation)
+    add_emojis = form_data.get("add_emojis", "yes")
+    sanitized["add_emojis"] = sanitize_boolean_choice(add_emojis)
     
-    if 'specific_instructions' in form_data:
-        sanitized['specific_instructions'] = sanitize_text_input(form_data.get('specific_instructions', ''))
+    # Tables (validation)
+    add_tables = form_data.get("add_tables", "yes")
+    sanitized["add_tables"] = sanitize_boolean_choice(add_tables)
+    
+    # Instructions spécifiques (nettoyage)
+    specific_instructions = form_data.get("specific_instructions", "")
+    sanitized["specific_instructions"] = sanitize_text_input(specific_instructions)
     
     return sanitized 
