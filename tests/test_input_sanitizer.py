@@ -11,6 +11,8 @@ from utils.input_sanitizer import (
     sanitize_text_input,
     sanitize_form_data
 )
+from utils.config import config
+import mock
 
 # Tests pour sanitize_url
 def test_sanitize_url_valid_youtube():
@@ -44,9 +46,10 @@ def test_sanitize_language_valid():
     assert sanitize_language(" es ") == "es"
 
 def test_sanitize_language_invalid():
-    assert sanitize_language("invalid") == "en"
-    assert sanitize_language("") == "en"
-    assert sanitize_language("123") == "en"
+    # Maintenant, la valeur par défaut vient de config.DEFAULT_LANGUAGE
+    assert sanitize_language("invalid") == config.DEFAULT_LANGUAGE
+    assert sanitize_language("") == config.DEFAULT_LANGUAGE
+    assert sanitize_language("123") == config.DEFAULT_LANGUAGE
 
 # Tests pour sanitize_engine_choice
 def test_sanitize_engine_choice_valid():
@@ -55,9 +58,9 @@ def test_sanitize_engine_choice_valid():
     assert sanitize_engine_choice(" openai-default ") == "openai-default"
 
 def test_sanitize_engine_choice_invalid():
-    assert sanitize_engine_choice("invalid") == "openai-default"  # Valeur par défaut = ollama
-    assert sanitize_engine_choice("") == "openai-default"  # Valeur par défaut = ollama
-    assert sanitize_engine_choice("azure") == "openai-default"  # Valeur par défaut = ollama
+    assert sanitize_engine_choice("invalid") == "openai-default"  # Valeur par défaut
+    assert sanitize_engine_choice("") == "openai-default"
+    assert sanitize_engine_choice("azure") == "openai-default"
 
 def test_sanitize_engine_choice_with_custom_default():
     assert sanitize_engine_choice("invalid", default="openai-default") == "openai-default"
@@ -71,9 +74,10 @@ def test_sanitize_detail_level_valid():
     assert sanitize_detail_level("detailed") == "detailed"
 
 def test_sanitize_detail_level_invalid():
-    assert sanitize_detail_level("invalid") == "medium"
-    assert sanitize_detail_level("") == "medium"
-    assert sanitize_detail_level("very-long") == "medium"
+    # Maintenant, la valeur par défaut vient de config.DEFAULT_DETAIL_LEVEL
+    assert sanitize_detail_level("invalid") == config.DEFAULT_DETAIL_LEVEL
+    assert sanitize_detail_level("") == config.DEFAULT_DETAIL_LEVEL
+    assert sanitize_detail_level("very-long") == config.DEFAULT_DETAIL_LEVEL
 
 # Tests pour sanitize_summary_type
 def test_sanitize_summary_type_valid():
@@ -82,9 +86,10 @@ def test_sanitize_summary_type_valid():
     assert sanitize_summary_type("insights") == "insights"
 
 def test_sanitize_summary_type_invalid():
-    assert sanitize_summary_type("invalid") == "full"
-    assert sanitize_summary_type("") == "full"
-    assert sanitize_summary_type("summary") == "full"
+    # Maintenant, la valeur par défaut vient de config.DEFAULT_SUMMARY_TYPE
+    assert sanitize_summary_type("invalid") == config.DEFAULT_SUMMARY_TYPE
+    assert sanitize_summary_type("") == config.DEFAULT_SUMMARY_TYPE
+    assert sanitize_summary_type("summary") == config.DEFAULT_SUMMARY_TYPE
 
 # Tests pour sanitize_style
 def test_sanitize_style_valid():
@@ -158,7 +163,7 @@ def test_sanitize_form_data_complete():
         "language": "fr",
         "detail_level": "detailed",
         "summary_type": "insights",
-        "style": "bullet",
+        "style": "mixed",
         "add_emojis": "yes",
         "add_tables": "no",
         "api_url": "https://api.openai.com/v1/completions",
@@ -192,5 +197,5 @@ def test_sanitize_form_data_with_invalid_data():
     
     assert sanitized["youtube_url"] == ""
     assert sanitized["engine"] == "openai-default"
-    assert sanitized["language"] == "en"
+    assert sanitized["language"] == config.DEFAULT_LANGUAGE
     assert sanitized["api_url"] == "" 

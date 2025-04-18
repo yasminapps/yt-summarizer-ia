@@ -7,6 +7,7 @@ from utils.logger import get_logger
 from utils.decorators import timed, safe_exec
 from services.prompt_builder import build_final_prompt, build_initial_prompt, build_update_prompt
 from utils.input_sanitizer import sanitize_form_data
+from utils.config import config
 import markdown
 from utils.count_tokens import count_tokens
 from services.text_splitter import split_transcript_by_tokens
@@ -23,9 +24,9 @@ def sanitize_user_choices(initial_form_data):
             "engine": initial_form_data.get("engine", "openai-default"),  # Valeur par défaut : openai-default
             "api_key": initial_form_data.get("api_key", ""),
             "api_url": initial_form_data.get("api_url", ""),
-            "summary_type": initial_form_data.get("summary_type", "full"),
-            "language": initial_form_data.get("language", "en"),
-            "detail_level": initial_form_data.get("detail_level", "medium"),
+            "summary_type": initial_form_data.get("summary_type", config.DEFAULT_SUMMARY_TYPE),
+            "language": initial_form_data.get("language", config.DEFAULT_LANGUAGE),
+            "detail_level": initial_form_data.get("detail_level", config.DEFAULT_DETAIL_LEVEL),
             "style": initial_form_data.get("style", "mixed"),
             "add_emojis": initial_form_data.get("add_emojis", "yes"),
             "add_tables": initial_form_data.get("add_tables", "yes"),
@@ -42,7 +43,7 @@ def sanitize_user_choices(initial_form_data):
 
     except Exception as e:
         logger.exception(f"❌ Error sanitizing user choices: {str(e)}")
-        raise  
+        raise
 
 @timed
 def summarize():
@@ -85,7 +86,7 @@ def summarize():
             }), 500
 
         # 3. Sélection du client IA
-        logger.info(f"🧠 Calling {engine}")
+        logger.info(f"🧠 Calling {engine} with API URL: {api_url}")
         client = get_llm_client(engine, api_url=api_url, api_key=api_key)
 
         # 4. Préparation des options pour le prompt
@@ -100,7 +101,7 @@ def summarize():
         }
         
         # 5. Appels successifs à l'IA
-        chunks = split_transcript_by_tokens(transcript_text, max_tokens=10000, model="gpt-4o")
+        chunks = split_transcript_by_tokens(transcript_text, max_tokens=config.MAX_TOKENS, model=config.OPENAI_ENCODING_MODEL)
         logger.debug(f"✂️ Transcript split into {len(chunks)} parts")
 
         current_summary = None

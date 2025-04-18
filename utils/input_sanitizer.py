@@ -5,6 +5,7 @@ import re
 import html
 from typing import Dict, List, Any, Optional, Union
 from utils.logger import get_logger
+from utils.config import config
 from urllib.parse import urlparse
 
 logger = get_logger()
@@ -30,7 +31,7 @@ def sanitize_language(language: str) -> str:
     language = language.strip().lower()
     if re.match(r'^[a-z]{2}$', language):
         return language
-    return "en"  # Langue par défaut
+    return config.DEFAULT_LANGUAGE  # Langue par défaut depuis config
 
 def sanitize_engine_choice(choice: str, default: str = "openai-default") -> str:
     """
@@ -45,14 +46,14 @@ def sanitize_detail_level(detail_level: str) -> str:
     Sanitise le niveau de détail demandé.
     """
     valid_levels = ["short", "medium", "detailed"]
-    return detail_level if detail_level in valid_levels else "medium"
+    return detail_level if detail_level in valid_levels else config.DEFAULT_DETAIL_LEVEL
 
 def sanitize_summary_type(summary_type: str) -> str:
     """
     Sanitise le type de résumé demandé.
     """
     valid_types = ["full", "tools", "insights"]
-    return summary_type if summary_type in valid_types else "full"
+    return summary_type if summary_type in valid_types else config.DEFAULT_SUMMARY_TYPE
 
 def sanitize_style(style: str) -> str:
     """

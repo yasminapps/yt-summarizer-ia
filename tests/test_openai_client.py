@@ -1,6 +1,7 @@
 import pytest
 from unittest.mock import patch, Mock
 from services.openai_client import call_openai_llm
+from utils.config import config
 
 
 @patch("services.openai_client.requests.post")
@@ -39,3 +40,24 @@ def test_openai_bad_url(mock_post):
 
     result = call_openai_llm("Prompt", api_url="bad-url", api_key="sk-xxx")
     assert "Erreur appel OpenAI" in result["response"]
+
+
+@patch("services.openai_client.requests.post")
+def test_openai_uses_config_model(mock_post):
+    # Vérifie que le modèle par défaut de config est utilisé
+    mock_response = Mock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {
+        "choices": [{
+            "message": {"content": "Résumé test"}
+        }],
+        "usage": {"total_tokens": 10}
+    }
+    mock_post.return_value = mock_response
+
+    # Appel sans spécifier le modèle
+    call_openai_llm("Test", api_url="https://test.url", api_key="sk-test")
+    
+    # Vérifier que le bon modèle a été utilisé dans la requête
+    called_args = mock_post.call_args[1]["json"]
+    assert called_args["model"] == config.OPENAI_MODEL

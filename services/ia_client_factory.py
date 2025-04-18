@@ -2,6 +2,7 @@ from services.ollama_client import call_ollama_llm
 from services.openai_client import call_openai_llm
 from utils.decorators import safe_exec, log_execution, timed
 from utils.logger import get_logger
+from utils.config import config
 import os
 from dotenv import load_dotenv
 
