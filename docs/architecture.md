@@ -1,81 +1,132 @@
-# 🧠 Project Architecture - yt-summarizer-ia
+# 🏗️ Project Architecture — YouTube Transcript & Summary Generator
 
-## 📁 Project Structure
-
-yt-summarizer-ia/
-│
-├── app.py                       # Entry point of the Flask application
-├── config.py                    # Optional config file
-├── requirements.txt             # Python dependencies
-├── CONTRIBUTING.md              # Contribution guidelines
-├── README.md                    # Project overview and usage
-│
-├── templates/
-│   └── index.html               # Main HTML interface
-│
-├── static/
-│   ├── style.css                # CSS styles
-│   └── script.js                # Frontend interactivity (toggle, auto-language)
-│
-├── routes/
-│   └── summarize.py             # POST route to handle summarization
-│
-├── services/
-│   ├── openai_client.py         # Calls OpenAI API (remote summarization)
-│   ├── ollama_client.py         # Calls local Ollama server (offline summarization)
-│   ├── youtube_transcript.py    # Extracts YouTube transcript from video URL
-│   └── ia_client_factory.py     # Chooses LLM engine (OpenAI vs Ollama)
-│
-├── utils/
-│   ├── formatter.py             # Cleans up transcript text
-│   ├── logger.py                # (Optional) logging utility
-│   └── decorators.py            # (Optional) decorators
-│
-├── tests/
-│   └── test_api.py              # Unit test for API behavior
-│
-└── docs/
-└── architecture.md          # Current documentation file
-
+This document outlines the complete technical architecture of the project, including its backend/frontend structure, AI engine integration, token-based text chunking system, dependency injection mechanism, and test strategy.
 
 ---
 
-## 🧩 Core Components
+## ⚙️ Overview
 
-| Component              | Description                                                            |
-|------------------------|------------------------------------------------------------------------|
-| `Flask`                | Lightweight web server for routing and request handling                |
-| `YouTubeTranscriptAPI` | Extracts video subtitles automatically                                 |
-| `Ollama`               | Local LLM engine (e.g. LLaMA3) without Internet access                 |
-| `OpenAI API`           | Remote LLM engine (GPT-3.5/4), requires API key and endpoint           |
-| `dotenv`               | Loads environment variables from `.env` securely                      |
-| `HTML/CSS/JS`          | User interface with multi-language and interactive elements            |
+The application extracts transcripts from YouTube videos and uses an AI engine (OpenAI or Ollama) to generate structured summaries with customizable formats and styles.
 
 ---
 
-## 🔁 Execution Workflow
+## 🧱 Application Structure
 
-1. User submits a YouTube URL, chooses the LLM engine, summary type, target language, and detail level.
-2. The backend fetches the video transcript.
-3. A tailored prompt is generated based on user inputs.
-4. The IA engine is selected via the `ia_client_factory`.
-5. The summary is generated using OpenAI or Ollama.
-6. The result (summary + optional token usage) is returned to the frontend.
-
----
-
-## 🧱 Design Patterns & Best Practices
-
-- **Factory Pattern**: `get_llm_client()` dynamically selects the correct LLM engine.
-- **Separation of Concerns**: Clear separation between logic (`services`), interface (`routes`, `templates`), and utilities (`utils`).
-- **Environment Safety**: `.env` file is used via `python-dotenv` to protect sensitive credentials.
-- **Frontend Modularity**: JavaScript and CSS are in separate files for maintainability.
-- **Multilingual UX**: Auto-detects browser language and allows any language via `datalist`.
-- **Open Source Ready**: Standard GitHub layout, documentation folder, clear modular structure.
+```bash
+.
+├── app.py                   # Flask entrypoint
+├── routes/                 # Flask routes (summary, transcript)
+├── services/               # Business logic (AI clients, transcript, prompt, splitters)
+├── utils/                  # Shared helpers (config, logger, decorators, sanitizer)
+├── templates/              # HTML (Jinja2 templates)
+├── static/                 # JS, CSS, favicon
+├── prompts/                # Prompt templates (externalized)
+├── tests/                  # Unit + integration tests (Pytest + Jest)
+├── requirements.txt
+└── run.sh
+```
 
 ---
 
-## 📌 Notes
+## 🧠 AI Engine Integration
 
-- The project is designed for easy contribution, modular evolution, and eventual deployment.
-- Future enhancements include automatic language detection, caching, user auth, and UI refinement.
+Supported AI engines:
+- `OpenAI` (GPT-4o by default via API)
+- `Ollama` (local models via local endpoint)
+
+Users can:
+- Use the platform’s default OpenAI key
+- Provide their own OpenAI API key + endpoint
+
+Selection is handled via a radio input and passed to the backend with each request.
+
+---
+
+## 🪄 Summary Generation Flow
+
+1. **User submits a YouTube URL + customization options**
+2. **Transcript extraction** via YouTube API
+3. **Transcript is split into token-safe chunks** using `tiktoken`
+4. First chunk → `build_initial_prompt()`  
+   Other chunks → `build_update_prompt(previous_summary)`
+5. Each chunk is sent to the LLM client (OpenAI/Ollama)
+6. Each partial summary is chained with the previous one
+7. Final result is converted to HTML using `markdown.markdown()` and returned
+
+---
+
+## ✂️ Token-Based Text Splitting
+
+- Transcript is split by sentence.
+- Each chunk is encoded with `tiktoken` and must remain under `MAX_TOKENS`.
+- If a single sentence exceeds the limit, it is isolated into its own chunk.
+
+```python
+split_transcript_by_tokens(text, max_tokens=10000, model="gpt-3.5-turbo")
+```
+
+---
+
+## 🧩 Dependency Injection System
+
+Decorators used:
+- `@inject_logger`
+- `@inject_config`
+- `@inject_dependencies` (for both)
+
+This allows services and routes to receive pre-injected `config` and `logger` objects. No global import of `config` or `get_logger()` in logic functions = more modular and testable.
+
+---
+
+## 🧪 Testing Strategy
+
+### Backend (Python – Pytest)
+
+- Unit tests for all services: `youtube_transcript`, `ollama_client`, `openai_client`, `splitter`, `prompt_builder`
+- Integration tests for Flask routes: `summarize`, `get_transcript_only`
+
+### Frontend (JavaScript – Jest + jsdom)
+
+- DOM logic (copy, download, loading animation, clipboard)
+- Uses `@jest-environment jsdom` to simulate browser environment
+- HTML template is loaded dynamically before each test
+
+```bash
+cd tests/test_frontend
+npm test
+```
+
+---
+
+## 🔁 CI/CD
+
+CI is powered by **GitHub Actions**:
+- Python tests (pytest) and JS tests (Jest) run on each push and pull request
+- Node.js and Python environments are both set up and cached
+- Workflow: `.github/workflows/test.yml`
+
+---
+
+## 🐳 Docker (Coming soon)
+
+A `Dockerfile` and `docker-compose.yml` are planned to encapsulate:
+- Flask server
+- Ollama service
+- Node.js build for JS tests (optional)
+
+---
+
+## 🧩 Modularity
+
+- Prompt logic is externalized in `/prompts/`
+- Config is isolated and validated using `pydantic-settings`
+- Logger is injectable for mocking
+- Backend is test-friendly and ready for scaling (even without microservices)
+
+---
+
+## ✅ Notes
+
+- App is local-first, with future deployment to Hostinger VPS
+- User API key support and language autodetection are in production
+- No database, no persistent storage: pure stateless generation
