@@ -1,0 +1,11 @@
+{
+  "name": "yt-summarizer-ia",
+  "version": "2.0.0",
+  "type": "module",
+  "scripts": {
+    "test": "jest"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
+}

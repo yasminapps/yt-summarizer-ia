@@ -30,35 +30,93 @@ window.onload = function() {
     }
 };
 
+// Exposer les fonctions pour les tests
+window.formatSecondsToMinutes = function(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}m ${remainingSeconds.toFixed(0)}s`;
+};
+
+window.startLoadingAnimation = function() {
+    const loadingAnimation = document.getElementById("loading-animation");
+    const loadingDots = document.getElementById("loading-dots");
+    loadingAnimation.style.display = "flex";
+    let dots = "";
+    window.dotInterval = setInterval(() => {
+        dots = dots.length < 3 ? dots + "." : ".";
+        loadingDots.textContent = dots;
+    }, 500);
+};
+
+window.stopLoadingAnimation = function() {
+    const loadingAnimation = document.getElementById("loading-animation");
+    const loadingDots = document.getElementById("loading-dots");
+    clearInterval(window.dotInterval);
+    loadingAnimation.style.display = "none";
+    loadingDots.textContent = "";
+};
+
+window.downloadSummary = function() {
+    const text = document.getElementById("summary-result").innerText;
+    const blob = new Blob([text], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "summary.txt";
+    link.click();
+
+    // Vérifier si la méthode existe (peut être absent dans l'environnement de test)
+    if (URL.revokeObjectURL) {
+        URL.revokeObjectURL(url);
+    }
+};
+
+window.copySummary = function() {
+    const text = document.getElementById("summary-result").innerText;
+    return navigator.clipboard.writeText(text).then(() => {
+        showCopyFeedback("✅ Summary copied!");
+    }).catch(() => {
+        showCopyFeedback("❌ Copy failed.");
+    });
+};
+
+window.downloadTranscript = function() {
+    const text = window.lastTranscript || "Transcript unavailable.";
+    const blob = new Blob([text], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "transcript.txt";
+    link.click();
+
+    // Vérifier si la méthode existe (peut être absent dans l'environnement de test)
+    if (URL.revokeObjectURL) {
+        URL.revokeObjectURL(url);
+    }
+};
+
+window.copyTranscript = function() {
+    const text = window.lastTranscript || "Transcript unavailable.";
+    return navigator.clipboard.writeText(text).then(() => {
+        showCopyFeedback("✅ Transcript copied!");
+    }).catch(() => {
+        showCopyFeedback("❌ Copy failed.");
+    });
+};
+
+function showCopyFeedback(message) {
+    const feedback = document.getElementById("copy-feedback");
+    feedback.textContent = message;
+    setTimeout(() => feedback.textContent = "", 2000);
+}
+
 document.addEventListener("DOMContentLoaded", function () {
     const form = document.querySelector("form");
     const summaryResult = document.getElementById("summary-result");
     const errorMessage = document.getElementById("error-message");
     const tokenInfo = document.getElementById("token-info");
-
-    const loadingAnimation = document.getElementById("loading-animation");
-    const loadingDots = document.getElementById("loading-dots");
-    let dotInterval = null;
-
-    function startLoadingAnimation() {
-        loadingAnimation.style.display = "flex";
-        let dots = "";
-        dotInterval = setInterval(() => {
-            dots = dots.length < 3 ? dots + "." : ".";
-            loadingDots.textContent = dots;
-        }, 500);
-    }
-    function stopLoadingAnimation() {
-        clearInterval(dotInterval);
-        loadingAnimation.style.display = "none";
-        loadingDots.textContent = "";
-    }
-
-    function formatSecondsToMinutes(seconds) {
-        const minutes = Math.floor(seconds / 60);
-        const remainingSeconds = seconds % 60;
-        return `${minutes}m ${remainingSeconds.toFixed(0)}s`;
-    }
 
     form.addEventListener("submit", async function (e) {
         e.preventDefault(); // block default form submission
@@ -71,7 +129,7 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("summary-actions").style.display = "none";
         document.getElementById("transcript-actions").style.display = "none";   
         document.getElementById("summary-container").style.display = "block";
-        startLoadingAnimation();
+        window.startLoadingAnimation();
 
         try {
             const response = await fetch(actionUrl, {
@@ -82,7 +140,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const data = await response.json();
             const executionTime = data.execution_time || 0;  // en secondes
            
-            stopLoadingAnimation();
+            window.stopLoadingAnimation();
 
             if (response.ok) {
                 summaryResult.innerHTML = ""  
@@ -106,66 +164,16 @@ document.addEventListener("DOMContentLoaded", function () {
                     tokenInfo.textContent = `Tokens used : ${totalTokens}`;
                 }
                 if (executionTime) {
-                    const formattedTime = formatSecondsToMinutes(executionTime);
+                    const formattedTime = window.formatSecondsToMinutes(executionTime);
                     tokenInfo.textContent += ` | Execution time: ${formattedTime}`;
                 }
             } else {
                 errorMessage.textContent = data.summary || "️⚠️ An error occurred.";
             }
         } catch (err) {
-            stopLoadingAnimation();
+            window.stopLoadingAnimation();
             errorMessage.textContent = "🚨 Server not reachable or invalid response.";
         }
     });
 });
-
-function downloadSummary() {
-    const text = document.getElementById("summary-result").innerText;
-    const blob = new Blob([text], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "summary.txt";
-    link.click();
-
-    URL.revokeObjectURL(url);
-}
-
-function copySummary() {
-    const text = document.getElementById("summary-result").innerText;
-    navigator.clipboard.writeText(text).then(() => {
-        showCopyFeedback("✅ Summary copied!");
-    }).catch(() => {
-        showCopyFeedback("❌ Copy failed.");
-    });
-}
-
-function downloadTranscript() {
-    const text = window.lastTranscript || "Transcript unavailable.";
-    const blob = new Blob([text], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "transcript.txt";
-    link.click();
-
-    URL.revokeObjectURL(url);
-}
-
-function copyTranscript() {
-    const text = window.lastTranscript || "Transcript unavailable.";
-    navigator.clipboard.writeText(text).then(() => {
-        showCopyFeedback("✅ Transcript copied!");
-    }).catch(() => {
-        showCopyFeedback("❌ Copy failed.");
-    });
-}
-
-function showCopyFeedback(message) {
-    const feedback = document.getElementById("copy-feedback");
-    feedback.textContent = message;
-    setTimeout(() => feedback.textContent = "", 2000);
-}
 

@@ -1,0 +1,30 @@
+{
+  "name": "yt-summarizer-ia",
+  "version": "1.0.0",
+  "description": "An AI-powered summarizer for YouTube videos — using either a local LLM (Ollama) or a remote model (OpenAI).   It extracts the transcript from a video, generates a custom prompt, and returns a clean summary in your preferred language and format.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yasminapps/yt-summarizer-ia.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/yasminapps/yt-summarizer-ia/issues"
+  },
+  "homepage": "https://github.com/yasminapps/yt-summarizer-ia#readme",
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0"
+  }
+}

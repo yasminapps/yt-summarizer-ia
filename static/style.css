@@ -223,3 +223,27 @@ input[type="radio"] {
     border: none;
     border-top: 1px solid #ddd;
   }
+
+/* Réduction des espacements par défaut */
+#summary-result h1,
+#summary-result h2,
+#summary-result h3,
+#summary-result p,
+#summary-result ul,
+#summary-result li, 
+#summary-result ol,
+#summary-result blockquote {
+  margin-top: 0rem;
+  margin-bottom: 0rem;
+  padding: 0;
+  line-height: 1.2;
+}
+
+/* Optionnel : réduire les listes */
+#summary-result ul {
+  padding-left: 1.0rem;
+}
+
+#summary-result li {
+  margin-bottom: 0.0rem;
+}
