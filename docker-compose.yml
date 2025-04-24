@@ -4,10 +4,20 @@ services:
   app:
     build: .
     container_name: yt-app
-    ports:
-      - "5005:5000"
+    ports: 
+      - "5005:5005"
     volumes:
       - .:/app
     environment:
       - PYTHONUNBUFFERED=1
     restart: unless-stopped
+
+  nginx:
+    image: nginx:latest
+    container_name: yt-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
