@@ -16,4 +16,4 @@ def transcript_route():
     return get_transcript_only()
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5002)
+    app.run(debug=True, port=5005)
