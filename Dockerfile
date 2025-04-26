@@ -11,8 +11,8 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 # Copy project files
 COPY . .
 
-# Expose Flask port
-EXPOSE 5005
+# Expose HTTP port
+EXPOSE 80
 
 # Run the application with gunicorn
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5005", "--timeout", "720","app:app"]
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:80", "--timeout", "720","app:app"]
