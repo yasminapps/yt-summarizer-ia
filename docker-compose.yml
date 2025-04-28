@@ -27,11 +27,7 @@ services:
     image: certbot/certbot
     container_name: yt-certbot
     volumes:
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
-    command: >
-      sh -c "certbot certonly --webroot --webroot-path=/var/www/certbot
-      --email yasmina.attiallah@helloelho.com
-      --agree-tos
-      --no-eff-email
-      -d helloelho.com -d www.helloelho.com && certbot renew"
+     - ./certbot/conf:/etc/letsencrypt
+     - ./certbot/www:/var/www/certbot
+    entrypoint: ""
+    command: certbot certonly --webroot --webroot-path=/var/www/certbot --email yasmina.attiallah@helloelho.com --agree-tos --no-eff-email -d helloelho.com -d www.helloelho.com
