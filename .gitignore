@@ -14,3 +14,19 @@ __pycache__/
 uploads/
 test-rapide.py
 
+# certificats ou des clés
+*.pem
+*.key
+*.crt
+*.csr
+*.pfx
+*.p12
+*.jks
+*.der
+*.srl
+
+# Dossiers système
+certbot/
+letsencrypt/
+etc/
+var/
