@@ -34,16 +34,18 @@ def test_extract_video_id_handles_exception():
         assert video_id is None
 
 @patch('services.youtube_transcript.YouTubeTranscriptApi')
-def test_get_transcript_text_success(mock_api):
-    mock_transcript = [
+def test_get_transcript_text_success(mock_api_class):
+    mock_api_instance = MagicMock()
+    mock_api_class.return_value = mock_api_instance
+
+    mock_api_instance.get_transcript.return_value = [
         {'text': 'First line of transcript', 'duration': 1.5},
         {'text': 'Second line of transcript', 'duration': 2.0}
     ]
-    mock_api.get_transcript.return_value = mock_transcript
     
     text = get_transcript_text("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
-    
-    mock_api.get_transcript.assert_called_once_with("dQw4w9WgXcQ", languages=['fr', 'en'])
+
+    mock_api_instance.get_transcript.assert_called_once_with("dQw4w9WgXcQ", languages=['fr', 'en'])
     assert text == "First line of transcript\nSecond line of transcript"
 
 @patch('services.youtube_transcript.extract_video_id')
@@ -55,11 +57,14 @@ def test_get_transcript_text_invalid_url(mock_extract):
 
 @patch('services.youtube_transcript.YouTubeTranscriptApi')
 @patch('services.youtube_transcript.extract_video_id')
-def test_get_transcript_text_custom_languages(mock_extract, mock_api):
+def test_get_transcript_text_custom_languages(mock_extract, mock_api_class):
     mock_extract.return_value = "dQw4w9WgXcQ"
-    mock_api.get_transcript.return_value = [{'text': 'Transcript text', 'duration': 1.0}]
+    
+    mock_api_instance = MagicMock()
+    mock_api_class.return_value = mock_api_instance
+    mock_api_instance.get_transcript.return_value = [{'text': 'Transcript text', 'duration': 1.0}]
     
     text = get_transcript_text("https://www.youtube.com/watch?v=dQw4w9WgXcQ", languages=['es', 'de'])
-    
-    mock_api.get_transcript.assert_called_once_with("dQw4w9WgXcQ", languages=['es', 'de'])
+
+    mock_api_instance.get_transcript.assert_called_once_with("dQw4w9WgXcQ", languages=['es', 'de'])
     assert text == "Transcript text"
